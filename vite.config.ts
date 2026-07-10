@@ -1,12 +1,13 @@
 /**
  * Configuração mínima do Vite.
- * Só React — sem Tailwind nem plugins extras.
+ * base /crm/ para embed no painel (Minas / Tilit).
  */
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 
 export default defineConfig({
+  base: '/crm/',
   plugins: [react()],
   resolve: {
     alias: {
