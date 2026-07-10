@@ -3,7 +3,6 @@
  * Cada arquivo fica pequeno e fácil de manter.
  */
 @import './tokens.css';
-@import './shell.css';
 @import './toolbar.css';
 @import './kanban.css';
 @import './views.css';
@@ -14,3 +13,19 @@
 @import './tarefas-form.css';
 @import './tarefas-cal.css';
 @import './campos.css';
+
+/* Full-bleed sem ShellLayout (sidebar do CRM removida) */
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+#root {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  max-width: 100vw;
+  overflow: hidden;
+  background: var(--background);
+}
