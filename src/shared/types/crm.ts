@@ -79,6 +79,7 @@ export type Contato = {
   timeline: TimelineItem[]
   colunaId: string
   criadoEm: string
+  chatwootContactId?: string | null
 }
 
 export type Coluna = {
@@ -125,6 +126,7 @@ export function contatoVazio(
         em: partial.criadoEm,
       },
     ],
+    chatwootContactId: null,
     ...partial,
   }
 }

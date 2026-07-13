@@ -9,6 +9,7 @@ import {
   IconList,
   IconListChecks,
   IconPlus,
+  IconRefresh,
   IconRows,
   IconSearch,
   IconSliders,
@@ -40,7 +41,15 @@ export function CrmToolbar({
   onAbrirTarefas,
   onAbrirCampos,
 }: Props) {
-  const { busca, setBusca, zoomIn, zoomOut, adicionarColuna } = useCrm()
+  const {
+    busca,
+    setBusca,
+    zoomIn,
+    zoomOut,
+    adicionarColuna,
+    sincronizarChatwoot,
+    syncChatwootEmAndamento,
+  } = useCrm()
   const [filtroAberto, setFiltroAberto] = useState(false)
 
   useEffect(() => {
@@ -133,6 +142,19 @@ export function CrmToolbar({
         >
           <IconPlus />
           <span className="btn-label">Nova Coluna</span>
+        </button>
+
+        <button
+          type="button"
+          className="btn btn-outline"
+          disabled={syncChatwootEmAndamento}
+          title="Sincronizar contatos do Chatwoot"
+          onClick={() => void sincronizarChatwoot()}
+        >
+          <IconRefresh />
+          <span className="btn-label">
+            {syncChatwootEmAndamento ? 'Sincronizando…' : 'Chatwoot'}
+          </span>
         </button>
 
         <button

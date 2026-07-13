@@ -57,6 +57,8 @@ type CrmContextValue = CrmState & {
   reordenarColunas: (origemId: string, destinoId: string) => void
   renomearColuna: (id: string, titulo: string) => void
   removerColuna: (id: string) => void
+  sincronizarChatwoot: () => Promise<void>
+  syncChatwootEmAndamento: boolean
 }
 
 const CrmContext = createContext<CrmContextValue | null>(null)
@@ -99,6 +101,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   const [contatoAbertoId, setContatoAbertoId] = useState<string | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
+  const [syncChatwootEmAndamento, setSyncChatwootEmAndamento] = useState(false)
 
   const pendingPatches = useRef(new Map<string, Partial<Contato>>())
   const patchTimers = useRef(new Map<string, number>())
@@ -129,17 +132,34 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  const recarregarBoard = useCallback(async () => {
+    const data = await crmFetch<{ colunas: Coluna[]; contatos: Contato[] }>(
+      '/board',
+    )
+    setColunas(data.colunas)
+    setContatos(normalizarContatos(data.contatos))
+  }, [])
+
+  const sincronizarChatwoot = useCallback(async () => {
+    if (syncChatwootEmAndamento) return
+    setSyncChatwootEmAndamento(true)
+    try {
+      await crmFetch('/sync/chatwoot', { method: 'POST' })
+      await recarregarBoard()
+      setErro(null)
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : 'Falha ao sincronizar Chatwoot')
+    } finally {
+      setSyncChatwootEmAndamento(false)
+    }
+  }, [recarregarBoard, syncChatwootEmAndamento])
+
   useEffect(() => {
     let cancelado = false
     ;(async () => {
       try {
-        const data = await crmFetch<{ colunas: Coluna[]; contatos: Contato[] }>(
-          '/board',
-        )
-        if (cancelado) return
-        setColunas(data.colunas)
-        setContatos(normalizarContatos(data.contatos))
-        setErro(null)
+        await recarregarBoard()
+        if (!cancelado) setErro(null)
       } catch (e) {
         if (!cancelado) {
           setErro(e instanceof Error ? e.message : 'Falha ao carregar CRM')
@@ -153,7 +173,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       for (const t of patchTimers.current.values()) window.clearTimeout(t)
       patchTimers.current.clear()
     }
-  }, [])
+  }, [recarregarBoard])
 
   const colunasOrdenadas = useMemo(
     () => [...colunas].sort((a, b) => a.ordem - b.ordem),
@@ -412,6 +432,8 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     reordenarColunas,
     renomearColuna,
     removerColuna,
+    sincronizarChatwoot,
+    syncChatwootEmAndamento,
   }
 
   return <CrmContext.Provider value={value}>{children}</CrmContext.Provider>
