@@ -66,8 +66,8 @@ type CrmContextValue = CrmState & {
   renomearColuna: (id: string, titulo: string) => void
   alterarCorColuna: (id: string, cor: string) => void
   removerColuna: (id: string, opts?: { moverParaId?: string }) => void
-  sincronizarChatwoot: () => Promise<void>
-  syncChatwootEmAndamento: boolean
+  sincronizarAtendimento: () => Promise<void>
+  syncAtendimentoEmAndamento: boolean
 }
 
 const CrmContext = createContext<CrmContextValue | null>(null)
@@ -110,7 +110,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   const [contatoAbertoId, setContatoAbertoId] = useState<string | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
-  const [syncChatwootEmAndamento, setSyncChatwootEmAndamento] = useState(false)
+  const [syncAtendimentoEmAndamento, setSyncAtendimentoEmAndamento] = useState(false)
 
   const pendingPatches = useRef(new Map<string, Partial<Contato>>())
   const patchTimers = useRef(new Map<string, number>())
@@ -168,19 +168,19 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     [abrirContato, recarregarBoard],
   )
 
-  const sincronizarChatwoot = useCallback(async () => {
-    if (syncChatwootEmAndamento) return
-    setSyncChatwootEmAndamento(true)
+  const sincronizarAtendimento = useCallback(async () => {
+    if (syncAtendimentoEmAndamento) return
+    setSyncAtendimentoEmAndamento(true)
     try {
-      await crmFetch('/sync/chatwoot', { method: 'POST' })
+      await crmFetch('/sync/atendimento', { method: 'POST' })
       await recarregarBoard()
       setErro(null)
     } catch (e) {
       setErro(e instanceof Error ? e.message : 'Falha ao sincronizar Atendimento')
     } finally {
-      setSyncChatwootEmAndamento(false)
+      setSyncAtendimentoEmAndamento(false)
     }
-  }, [recarregarBoard, syncChatwootEmAndamento])
+  }, [recarregarBoard, syncAtendimentoEmAndamento])
 
   useEffect(() => {
     let cancelado = false
@@ -544,8 +544,8 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     renomearColuna,
     alterarCorColuna,
     removerColuna,
-    sincronizarChatwoot,
-    syncChatwootEmAndamento,
+    sincronizarAtendimento,
+    syncAtendimentoEmAndamento,
   }
 
   return <CrmContext.Provider value={value}>{children}</CrmContext.Provider>

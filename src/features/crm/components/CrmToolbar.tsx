@@ -46,8 +46,8 @@ export function CrmToolbar({
     zoomIn,
     zoomOut,
     adicionarColuna,
-    sincronizarChatwoot,
-    syncChatwootEmAndamento,
+    sincronizarAtendimento,
+    syncAtendimentoEmAndamento,
   } = useCrm()
   const [filtroAberto, setFiltroAberto] = useState(false)
 
@@ -147,13 +147,13 @@ export function CrmToolbar({
         <button
           type="button"
           className="btn btn-outline"
-          disabled={syncChatwootEmAndamento}
+          disabled={syncAtendimentoEmAndamento}
           title="Sincronizar contatos do Atendimento"
-          onClick={() => void sincronizarChatwoot()}
+          onClick={() => void sincronizarAtendimento()}
         >
           <IconRefresh />
           <span className="btn-label">
-            {syncChatwootEmAndamento ? 'Sincronizando…' : 'Sincronizar'}
+            {syncAtendimentoEmAndamento ? 'Sincronizando…' : 'Sincronizar'}
           </span>
         </button>
 
