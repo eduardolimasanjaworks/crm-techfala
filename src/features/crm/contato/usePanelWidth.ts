@@ -8,6 +8,6 @@ export function usePanelWidth() {
   return useResizableWidth({
     storageKey: 'techfala-contato-panel-w',
     minDesktop: 360,
-    defaultRatio: 0.88,
+    defaultRatio: 0.42,
   })
 }

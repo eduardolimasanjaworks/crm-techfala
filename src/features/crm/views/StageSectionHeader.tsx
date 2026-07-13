@@ -3,7 +3,7 @@
  */
 import { IconPlus } from '../../../shared/icons'
 import { ColunaMenuButton } from '../components/ColunaMenuButton'
-import { formatBRL } from './viewUtils'
+import { formatBRL, hexToRgba } from './viewUtils'
 
 type Props = {
   colunaId: string
@@ -25,7 +25,7 @@ export function StageSectionHeader({
   return (
     <div
       className="stage-section-header"
-      style={{ background: `${cor}20` }}
+      style={{ background: hexToRgba(cor, 0.12) }}
     >
       <div className="stage-section-left">
         <span className="stage-dot" style={{ background: cor }} />

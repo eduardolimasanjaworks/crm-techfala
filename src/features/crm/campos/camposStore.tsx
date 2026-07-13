@@ -16,8 +16,11 @@ import type { CampoPersonalizado, NovoCampoInput } from './types'
 
 type Ctx = {
   campos: CampoPersonalizado[]
-  criar: (input: NovoCampoInput) => void
-  atualizar: (id: string, patch: Partial<CampoPersonalizado>) => void
+  criar: (input: NovoCampoInput) => Promise<CampoPersonalizado | null>
+  atualizar: (
+    id: string,
+    patch: Partial<CampoPersonalizado>,
+  ) => Promise<CampoPersonalizado | null>
   remover: (id: string) => void
 }
 
@@ -48,36 +51,34 @@ export function CamposProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const criar = useCallback((input: NovoCampoInput) => {
-    void (async () => {
-      try {
-        const { campo } = await crmFetch<{ campo: CampoPersonalizado }>(
-          '/campos',
-          { method: 'POST', body: JSON.stringify(input) },
-        )
-        setCampos((prev) => [campo, ...prev])
-      } catch {
-        /* noop */
-      }
-    })()
+  const criar = useCallback(async (input: NovoCampoInput) => {
+    try {
+      const { campo } = await crmFetch<{ campo: CampoPersonalizado }>(
+        '/campos',
+        { method: 'POST', body: JSON.stringify(input) },
+      )
+      setCampos((prev) => [campo, ...prev])
+      return campo
+    } catch {
+      return null
+    }
   }, [])
 
   const atualizar = useCallback(
-    (id: string, patch: Partial<CampoPersonalizado>) => {
+    async (id: string, patch: Partial<CampoPersonalizado>) => {
       setCampos((prev) =>
         prev.map((c) => (c.id === id ? { ...c, ...patch } : c)),
       )
-      void (async () => {
-        try {
-          const { campo } = await crmFetch<{ campo: CampoPersonalizado }>(
-            `/campos/${id}`,
-            { method: 'PATCH', body: JSON.stringify(patch) },
-          )
-          setCampos((prev) => prev.map((c) => (c.id === id ? campo : c)))
-        } catch {
-          /* noop */
-        }
-      })()
+      try {
+        const { campo } = await crmFetch<{ campo: CampoPersonalizado }>(
+          `/campos/${id}`,
+          { method: 'PATCH', body: JSON.stringify(patch) },
+        )
+        setCampos((prev) => prev.map((c) => (c.id === id ? campo : c)))
+        return campo
+      } catch {
+        return null
+      }
     },
     [],
   )

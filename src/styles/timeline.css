@@ -40,8 +40,17 @@
 @media (max-width: 640px) {
   .tl-track,
   .tl-day {
-    min-height: 280px;
-    height: 280px;
+    min-height: 200px;
+    height: 200px;
+  }
+
+  .tl-filters::before {
+    content: 'Deslize horizontalmente para ver mais';
+    display: block;
+    width: 100%;
+    font-size: 11px;
+    color: var(--muted-foreground);
+    margin-bottom: 4px;
   }
 }
 

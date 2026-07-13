@@ -340,3 +340,25 @@
   border-top: 1px solid var(--border);
   flex-shrink: 0;
 }
+
+.sheet-resize {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: col-resize;
+  z-index: 2;
+  touch-action: none;
+}
+
+.sheet-resize:hover,
+.sheet-resize:active {
+  background: color-mix(in srgb, var(--nav-active) 35%, transparent);
+}
+
+@media (max-width: 640px) {
+  .sheet-resize {
+    display: none;
+  }
+}

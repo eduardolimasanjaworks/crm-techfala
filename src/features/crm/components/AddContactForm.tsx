@@ -13,9 +13,15 @@ export function AddContactForm({ colunaId, onClose }: Props) {
   const [ddi, setDdi] = useState('+55')
   const [telefone, setTelefone] = useState('')
   const [iaAtiva, setIaAtiva] = useState(true)
+  const [hint, setHint] = useState('')
+
+  const valido = Boolean(nome.trim() && telefone.trim())
 
   function salvar() {
-    if (!nome.trim() || !telefone.trim()) return
+    if (!valido) {
+      setHint('Preencha nome e telefone.')
+      return
+    }
     adicionarContato(colunaId, {
       nome: nome.trim(),
       telefone: telefone.trim(),
@@ -34,7 +40,10 @@ export function AddContactForm({ colunaId, onClose }: Props) {
         autoFocus
         placeholder="Nome do contato"
         value={nome}
-        onChange={(e) => setNome(e.target.value)}
+        onChange={(e) => {
+          setNome(e.target.value)
+          setHint('')
+        }}
         onKeyDown={(e) => e.key === 'Escape' && onClose()}
       />
       <div className="phone-row">
@@ -54,7 +63,10 @@ export function AddContactForm({ colunaId, onClose }: Props) {
           className="input"
           placeholder="Telefone *"
           value={telefone}
-          onChange={(e) => setTelefone(e.target.value)}
+          onChange={(e) => {
+            setTelefone(e.target.value)
+            setHint('')
+          }}
           onKeyDown={(e) => {
             if (e.key === 'Enter') salvar()
             if (e.key === 'Escape') onClose()
@@ -74,10 +86,25 @@ export function AddContactForm({ colunaId, onClose }: Props) {
           <span className="campo-switch-knob" />
         </button>
       </div>
+      {hint ? <p className="empty-hint">{hint}</p> : null}
       <div className="add-form-actions">
-        <button type="button" className="btn btn-primary" onClick={salvar}>
-          Salvar
-        </button>
+        <span
+          className="add-save-wrap"
+          style={{ flex: 1, display: 'flex' }}
+          onClick={() => {
+            if (!valido) setHint('Preencha nome e telefone.')
+          }}
+        >
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={!valido}
+            onClick={salvar}
+            style={{ flex: 1 }}
+          >
+            Salvar
+          </button>
+        </span>
         <button type="button" className="btn btn-outline" onClick={onClose}>
           Cancelar
         </button>

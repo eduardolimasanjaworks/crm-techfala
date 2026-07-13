@@ -17,7 +17,7 @@
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 0.5rem;
-  overflow: hidden;
+  overflow: visible;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
@@ -284,7 +284,8 @@
   justify-content: center;
   gap: 0.5rem;
   overflow-y: auto;
-  max-height: 50vh;
+  max-height: 35vh;
+  min-height: 0;
   flex-shrink: 0;
   padding: 0 0.5rem;
 }
@@ -351,7 +352,7 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 0.5rem;

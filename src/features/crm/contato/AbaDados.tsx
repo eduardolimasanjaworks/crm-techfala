@@ -1,6 +1,6 @@
 /**
  * Aba Dados: campos principais do contato (nome, telefone, etapa, etc.).
- * Valida telefone obrigatório e permite mover etapa pelo select.
+ * Telefone/nome obrigatórios validados no blur (permite digitar livremente).
  */
 import type { Contato } from '@/shared/types/crm'
 import { useCrm } from '../store/crmStore'
@@ -23,6 +23,12 @@ export function AbaDados({ contato }: Props) {
           placeholder="Nome do contato"
           value={contato.nome}
           onChange={(e) => set('nome', e.target.value)}
+          onBlur={(e) => {
+            if (!e.target.value.trim()) {
+              window.alert('Informe o nome do contato.')
+              e.target.focus()
+            }
+          }}
         />
       </label>
 
@@ -45,13 +51,12 @@ export function AbaDados({ contato }: Props) {
             className="input"
             placeholder="Digite o telefone"
             value={contato.telefone}
-            onChange={(e) => {
-              const v = e.target.value
-              if (!v.trim()) {
+            onChange={(e) => set('telefone', e.target.value)}
+            onBlur={(e) => {
+              if (!e.target.value.trim()) {
                 window.alert('Informe o telefone do contato.')
-                return
+                e.target.focus()
               }
-              set('telefone', v)
             }}
           />
         </div>

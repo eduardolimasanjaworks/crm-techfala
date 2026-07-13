@@ -18,7 +18,8 @@ import { AbaTarefas } from './AbaTarefas'
 import { AbaTimeline } from './AbaTimeline'
 
 export function ContatoPanel() {
-  const { contatoAberto, fecharContato, removerContato } = useCrm()
+  const { contatoAberto, fecharContato, removerContato, flushContatoPendentes } =
+    useCrm()
   const [aba, setAba] = useState<AbaContatoId>('dados')
   const { cssWidth, startResize, canResize } = usePanelWidth()
 
@@ -26,8 +27,11 @@ export function ContatoPanel() {
 
   const c = contatoAberto
 
+  function fecharSalvando() {
+    void flushContatoPendentes(c.id).finally(() => fecharContato())
+  }
   return (
-    <div className="contato-overlay" role="presentation" onClick={fecharContato}>
+    <div className="contato-overlay" role="presentation" onClick={fecharSalvando}>
       <aside
         className="contato-panel"
         role="dialog"
@@ -55,7 +59,7 @@ export function ContatoPanel() {
             type="button"
             className="btn btn-ghost btn-icon"
             aria-label="Fechar"
-            onClick={fecharContato}
+            onClick={fecharSalvando}
           >
             <IconX />
           </button>
@@ -96,8 +100,8 @@ export function ContatoPanel() {
           >
             Excluir
           </button>
-          <button type="button" className="btn btn-primary" onClick={fecharContato}>
-            Salvar
+          <button type="button" className="btn btn-primary" onClick={fecharSalvando}>
+            Concluir
           </button>
         </footer>
       </aside>

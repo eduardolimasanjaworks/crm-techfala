@@ -4,6 +4,7 @@
 import { useMemo } from 'react'
 import { IconFilter, IconX } from '@/shared/icons'
 import { useCrm, type CrmFiltro } from '../store/crmStore'
+import { useTags } from '../tags/tagsStore'
 
 type Props = {
   aberto: boolean
@@ -14,12 +15,16 @@ type Props = {
 export function FiltroPanel({ aberto, onToggle, onClose }: Props) {
   const { colunasOrdenadas, contatos, filtro, setFiltro, limparFiltro } =
     useCrm()
+  const { tags: catalogTags } = useTags()
 
   const tags = useMemo(() => {
     const set = new Set<string>()
     for (const c of contatos) for (const t of c.tags) set.add(t)
+    for (const t of catalogTags) {
+      if (t.ativo) set.add(t.nome)
+    }
     return [...set].sort((a, b) => a.localeCompare(b, 'pt-BR'))
-  }, [contatos])
+  }, [contatos, catalogTags])
 
   const ativo =
     filtro.colunaIds.length > 0 ||

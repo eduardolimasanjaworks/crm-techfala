@@ -19,7 +19,7 @@ const formVazio = {
 
 export function AbaInteracoes({ contato }: Props) {
   const { atualizarContato } = useCrm()
-  const { usuarios } = useUsuarios()
+  const { opcoesResponsavel } = useUsuarios()
   const [aberto, setAberto] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
   const [form, setForm] = useState(formVazio)
@@ -119,9 +119,9 @@ export function AbaInteracoes({ contato }: Props) {
                 onChange={(e) => setForm({ ...form, responsavel: e.target.value })}
               >
                 <option value="">Responsável *</option>
-                {usuarios.map((u) => (
-                  <option key={u.id} value={u.nome}>
-                    {u.nome}
+                {opcoesResponsavel.map((nome) => (
+                  <option key={nome} value={nome}>
+                    {nome}
                   </option>
                 ))}
               </select>

@@ -27,7 +27,7 @@ export function AbaArquivos({ contato }: Props) {
           window.alert('O arquivo excede o limite de 20 MB.')
           continue
         }
-        uploadArquivo(contato.id, f)
+        await uploadArquivo(contato.id, f)
       }
     } finally {
       setEnviando(false)

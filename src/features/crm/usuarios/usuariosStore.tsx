@@ -14,7 +14,11 @@ import { crmFetch } from '@/shared/lib/crmApi'
 
 export type Usuario = { id: string; nome: string; email: string }
 
-type Ctx = { usuarios: Usuario[]; carregando: boolean }
+type Ctx = {
+  usuarios: Usuario[]
+  carregando: boolean
+  opcoesResponsavel: string[]
+}
 
 const UsuariosContext = createContext<Ctx | null>(null)
 
@@ -39,9 +43,15 @@ export function UsuariosProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  const opcoesResponsavel = useMemo(
+    () =>
+      usuarios.length > 0 ? usuarios.map((u) => u.nome) : ['Você'],
+    [usuarios],
+  )
+
   const value = useMemo(
-    () => ({ usuarios, carregando }),
-    [usuarios, carregando],
+    () => ({ usuarios, carregando, opcoesResponsavel }),
+    [usuarios, carregando, opcoesResponsavel],
   )
 
   return (

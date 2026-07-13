@@ -25,6 +25,13 @@ export function ListView() {
   const drop = useDropContato(coluna?.id ?? '')
 
   useEffect(() => {
+    setIdx((i) => {
+      const max = Math.max(0, colunasOrdenadas.length - 1)
+      return Math.min(i, max)
+    })
+  }, [colunasOrdenadas.length])
+
+  useEffect(() => {
     setVisiveis(PAGE_SIZE)
   }, [idx])
 

@@ -12,6 +12,7 @@ type Props = { onClose: () => void }
 export function TagsPanel({ onClose }: Props) {
   const { tags, criarTag, removerTag } = useTags()
   const [nova, setNova] = useState('')
+  const [erro, setErro] = useState('')
   const { cssWidth, startResize, canResize } = useResizableWidth({
     storageKey: 'techfala-tags-panel-w',
     minDesktop: 320,
@@ -22,7 +23,12 @@ export function TagsPanel({ onClose }: Props) {
     const t = nova.trim()
     if (!t || tags.some((x) => x.nome.toLowerCase() === t.toLowerCase())) return
     const criada = await criarTag({ nome: t })
-    if (criada) setNova('')
+    if (criada) {
+      setNova('')
+      setErro('')
+    } else {
+      setErro('Não foi possível criar a tag.')
+    }
   }
 
   const ativas = tags.filter((t) => t.ativo)
@@ -66,13 +72,17 @@ export function TagsPanel({ onClose }: Props) {
               className="input"
               placeholder="Nova tag"
               value={nova}
-              onChange={(e) => setNova(e.target.value)}
+              onChange={(e) => {
+                setNova(e.target.value)
+                setErro('')
+              }}
               onKeyDown={(e) => e.key === 'Enter' && void adicionar()}
             />
             <button type="button" className="btn btn-primary" onClick={() => void adicionar()}>
               <IconPlus />
             </button>
           </div>
+          {erro ? <p className="empty-hint danger-text">{erro}</p> : null}
 
           {ativas.length === 0 ? (
             <p className="empty-hint">Nenhuma tag cadastrada</p>

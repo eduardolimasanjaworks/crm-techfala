@@ -55,7 +55,8 @@ type CrmContextValue = CrmState & {
   adicionarColuna: (titulo?: string) => void
   adicionarContato: (colunaId: string, dados: NovoContatoInput) => void
   atualizarContato: (id: string, patch: Partial<Contato>) => void
-  uploadArquivo: (contatoId: string, file: File) => void
+  flushContatoPendentes: (id: string) => Promise<void>
+  uploadArquivo: (contatoId: string, file: File) => Promise<void>
   removerArquivo: (contatoId: string, arquivoId: string) => void
   abrirContato: (id: string) => void
   fecharContato: () => void
@@ -308,25 +309,50 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     [flushPatch],
   )
 
-  const uploadArquivo = useCallback((contatoId: string, file: File) => {
-    void (async () => {
-      try {
-        const { arquivo } = await crmUploadArquivo<{ arquivo: ContatoArquivo }>(
-          contatoId,
-          file,
-        )
-        setContatos((prev) =>
-          prev.map((c) =>
-            c.id === contatoId
-              ? { ...c, arquivos: [arquivo, ...c.arquivos] }
-              : c,
-          ),
-        )
-      } catch (e) {
-        setErro(e instanceof Error ? e.message : 'Erro ao enviar arquivo')
+  const uploadArquivo = useCallback(async (contatoId: string, file: File) => {
+    try {
+      const { arquivo } = await crmUploadArquivo<{ arquivo: ContatoArquivo }>(
+        contatoId,
+        file,
+      )
+      const tl = {
+        id: `tl-${crypto.randomUUID().slice(0, 8)}`,
+        tipo: 'arquivo' as const,
+        titulo: 'Arquivo',
+        detalhe: arquivo.nome,
+        em: new Date().toISOString(),
       }
-    })()
+      let timelineNext: Contato['timeline'] = [tl]
+      setContatos((prev) =>
+        prev.map((c) => {
+          if (c.id !== contatoId) return c
+          timelineNext = [tl, ...c.timeline]
+          return {
+            ...c,
+            arquivos: [arquivo, ...c.arquivos],
+            timeline: timelineNext,
+          }
+        }),
+      )
+      await crmFetch(`/contatos/${contatoId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ timeline: timelineNext }),
+      })
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : 'Erro ao enviar arquivo')
+      throw e
+    }
   }, [])
+
+  const flushContatoPendentes = useCallback(
+    async (id: string) => {
+      const t = patchTimers.current.get(id)
+      if (t) window.clearTimeout(t)
+      patchTimers.current.delete(id)
+      await flushPatch(id)
+    },
+    [flushPatch],
+  )
 
   const removerArquivo = useCallback((contatoId: string, arquivoId: string) => {
     setContatos((prev) =>
@@ -343,9 +369,10 @@ export function CrmProvider({ children }: { children: ReactNode }) {
         })
       } catch (e) {
         setErro(e instanceof Error ? e.message : 'Erro ao excluir arquivo')
+        await recarregarBoard()
       }
     })()
-  }, [])
+  }, [recarregarBoard])
 
   const fecharContato = useCallback(() => setContatoAbertoId(null), [])
 
@@ -361,17 +388,23 @@ export function CrmProvider({ children }: { children: ReactNode }) {
         await crmFetch(`/contatos/${id}`, { method: 'DELETE' })
       } catch (e) {
         setErro(e instanceof Error ? e.message : 'Erro ao excluir contato')
+        await recarregarBoard()
       }
     })()
-  }, [])
+  }, [recarregarBoard])
 
   const moverContato = useCallback(
     (contatoId: string, colunaDestinoId: string) => {
-      setContatos((prev) =>
-        prev.map((c) =>
+      let origem = ''
+      setContatos((prev) => {
+        const cur = prev.find((c) => c.id === contatoId)
+        origem = cur?.colunaId ?? ''
+        if (!cur || cur.colunaId === colunaDestinoId) return prev
+        return prev.map((c) =>
           c.id === contatoId ? { ...c, colunaId: colunaDestinoId } : c,
-        ),
-      )
+        )
+      })
+      if (!origem || origem === colunaDestinoId) return
       void (async () => {
         try {
           const { contato } = await crmFetch<{ contato: Contato }>(
@@ -384,13 +417,17 @@ export function CrmProvider({ children }: { children: ReactNode }) {
           const normalizado = normalizarContatos([contato])[0]
           setContatos((prev) => upsertContato(prev, normalizado))
         } catch (e) {
+          setContatos((prev) =>
+            prev.map((c) =>
+              c.id === contatoId ? { ...c, colunaId: origem } : c,
+            ),
+          )
           setErro(e instanceof Error ? e.message : 'Erro ao mover contato')
         }
       })()
     },
     [],
   )
-
   const reordenarColunas = useCallback(
     (origemId: string, destinoId: string) => {
       if (origemId === destinoId) return
@@ -496,6 +533,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     adicionarColuna,
     adicionarContato,
     atualizarContato,
+    flushContatoPendentes,
     uploadArquivo,
     removerArquivo,
     abrirContato,

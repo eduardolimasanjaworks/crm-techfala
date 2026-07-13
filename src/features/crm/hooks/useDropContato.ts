@@ -14,7 +14,9 @@ export function useDropContato(colunaId: string) {
     setOver(true)
   }
 
-  function onDragLeave() {
+  function onDragLeave(e: DragEvent) {
+    const related = e.relatedTarget as Node | null
+    if (related && e.currentTarget.contains(related)) return
     setOver(false)
   }
 

@@ -23,20 +23,35 @@ export function formatBRL(valor: number): string {
   })
 }
 
-/** Converte cor hex em rgba com alpha (ex.: header das etapas). */
-export function hexToRgba(hex: string, alpha: number): string {
-  const h = hex.replace('#', '')
+/** Extrai r,g,b de hex (#rgb/#rrggbb) ou rgb()/rgba(). */
+export function parseRgb(color: string): { r: number; g: number; b: number } | null {
+  const c = color.trim()
+  const rgb = c.match(
+    /^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s*,\s*[\d.]+)?\s*\)$/i,
+  )
+  if (rgb) {
+    return {
+      r: Math.round(Number(rgb[1])),
+      g: Math.round(Number(rgb[2])),
+      b: Math.round(Number(rgb[3])),
+    }
+  }
+  const h = c.replace('#', '')
   const full =
     h.length === 3
       ? h
           .split('')
-          .map((c) => c + c)
+          .map((ch) => ch + ch)
           .join('')
       : h
+  if (!/^[0-9a-fA-F]{6}$/.test(full)) return null
   const n = Number.parseInt(full, 16)
-  if (!Number.isFinite(n)) return `rgba(59, 130, 246, ${alpha})`
-  const r = (n >> 16) & 255
-  const g = (n >> 8) & 255
-  const b = n & 255
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 }
+}
+
+/** Converte cor (hex ou rgb) em rgba com alpha. */
+export function hexToRgba(color: string, alpha: number): string {
+  const rgb = parseRgb(color)
+  if (!rgb) return `rgba(59, 130, 246, ${alpha})`
+  return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`
 }

@@ -35,7 +35,7 @@ export function CampoForm({ onVoltar, campo }: Props) {
   const valido =
     Boolean(nome.trim()) && (tipo !== 'lista' || opcoes.length > 0)
 
-  function salvar() {
+  async function salvar() {
     if (!valido) return
     const dados = {
       nome: nome.trim(),
@@ -44,12 +44,15 @@ export function CampoForm({ onVoltar, campo }: Props) {
       tipo,
       opcoes,
     }
-    if (campo) {
-      atualizar(campo.id, dados)
-    } else {
-      criar(dados)
+    try {
+      const ok = campo
+        ? await atualizar(campo.id, dados)
+        : await criar(dados)
+      if (!ok) throw new Error('falha')
+      onVoltar()
+    } catch {
+      window.alert('Não foi possível salvar o campo. Tente novamente.')
     }
-    onVoltar()
   }
 
   return (

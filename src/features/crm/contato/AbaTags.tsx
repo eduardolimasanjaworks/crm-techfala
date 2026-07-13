@@ -39,10 +39,19 @@ export function AbaTags({ contato }: Props) {
   async function adicionar() {
     const t = nova.trim()
     if (!t || contato.tags.includes(t)) return
-    const existe = catalogoAtivo.some(
+    const jaNoCatalogo = catalogoAtivo.some(
       (x) => x.nome.toLowerCase() === t.toLowerCase(),
     )
-    if (!existe) await criarTag({ nome: t })
+    if (jaNoCatalogo) {
+      vincular(t)
+      setNova('')
+      return
+    }
+    const criada = await criarTag({ nome: t })
+    if (!criada) {
+      window.alert('Não foi possível criar a tag. Tente novamente.')
+      return
+    }
     vincular(t)
     setNova('')
   }

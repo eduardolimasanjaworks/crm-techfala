@@ -44,8 +44,14 @@ function CrmShell() {
       <CrmToolbar
         viewMode={viewMode}
         onViewModeChange={setViewMode}
-        onAbrirTags={() => setTagsAberto(true)}
-        onAbrirCampos={() => setCamposAberto(true)}
+        onAbrirTags={() => {
+          setCamposAberto(false)
+          setTagsAberto(true)
+        }}
+        onAbrirCampos={() => {
+          setTagsAberto(false)
+          setCamposAberto(true)
+        }}
       />
       <CrmBoard viewMode={viewMode} />
       <ContatoPanel />

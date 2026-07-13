@@ -56,6 +56,7 @@ export function AbaNotas({ contato }: Props) {
   }
 
   function excluir(id: string) {
+    if (!window.confirm('Excluir esta nota?')) return
     atualizarContato(contato.id, {
       notas: contato.notas.filter((n) => n.id !== id),
     })

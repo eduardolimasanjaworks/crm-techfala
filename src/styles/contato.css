@@ -94,6 +94,7 @@
   font-weight: 500;
   color: var(--muted-foreground);
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .contato-tab:hover {
