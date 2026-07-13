@@ -15,13 +15,11 @@ import { crmFetch } from '@/shared/lib/crmApi'
 
 export type Cadastros = {
   responsaveis: string[]
-  calendarios: string[]
   autorNotas: { nome: string; email: string }
 }
 
 const PADRAO: Cadastros = {
   responsaveis: ['Você'],
-  calendarios: ['Padrão'],
   autorNotas: { nome: 'Você', email: '' },
 }
 

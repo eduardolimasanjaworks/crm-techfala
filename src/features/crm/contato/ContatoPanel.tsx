@@ -9,7 +9,6 @@ import { ABAS_CONTATO, type AbaContatoId } from './abas'
 import { usePanelWidth } from './usePanelWidth'
 import { AbaArquivos } from './AbaArquivos'
 import { AbaDados } from './AbaDados'
-import { AbaEventos } from './AbaEventos'
 import { AbaInteracoes } from './AbaInteracoes'
 import { AbaNotas } from './AbaNotas'
 import { AbaPersonalizados } from './AbaPersonalizados'
@@ -85,7 +84,6 @@ export function ContatoPanel() {
           {aba === 'arquivos' ? <AbaArquivos contato={c} /> : null}
           {aba === 'tarefas' ? <AbaTarefas contato={c} /> : null}
           {aba === 'notas' ? <AbaNotas contato={c} /> : null}
-          {aba === 'eventos' ? <AbaEventos contato={c} /> : null}
           {aba === 'interacoes' ? <AbaInteracoes contato={c} /> : null}
           {aba === 'timeline' ? <AbaTimeline contato={c} /> : null}
         </div>

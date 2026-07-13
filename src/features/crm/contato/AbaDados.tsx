@@ -129,7 +129,12 @@ export function AbaDados({ contato }: Props) {
       </label>
 
       <div className="campo-switch-row">
-        <label htmlFor="ct-automacao">Atendimento pela IA</label>
+        <div>
+          <label htmlFor="ct-automacao">Atendimento pela IA</label>
+          <p className="field-hint" style={{ margin: '4px 0 0', fontSize: 12, opacity: 0.7 }}>
+            Mesmo controle do Assistente neste telefone
+          </p>
+        </div>
         <button
           type="button"
           role="switch"

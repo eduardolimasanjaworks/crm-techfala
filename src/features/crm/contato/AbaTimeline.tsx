@@ -12,7 +12,6 @@ const FILTROS = [
   { id: 'todos', label: 'Todos' },
   { id: 'lead', label: 'Lead' },
   { id: 'tarefa', label: 'Tarefa' },
-  { id: 'evento', label: 'Evento' },
   { id: 'nota', label: 'Nota' },
   { id: 'interacao', label: 'Interação' },
   { id: 'arquivo', label: 'Arquivo' },

@@ -10,7 +10,6 @@ export type AbaContatoId =
   | 'arquivos'
   | 'tarefas'
   | 'notas'
-  | 'eventos'
   | 'interacoes'
   | 'timeline'
 
@@ -21,7 +20,6 @@ export const ABAS_CONTATO: { id: AbaContatoId; label: string }[] = [
   { id: 'arquivos', label: 'Arquivos' },
   { id: 'tarefas', label: 'Tarefas' },
   { id: 'notas', label: 'Notas' },
-  { id: 'eventos', label: 'Eventos' },
   { id: 'interacoes', label: 'Interações' },
   { id: 'timeline', label: 'Timeline' },
 ]

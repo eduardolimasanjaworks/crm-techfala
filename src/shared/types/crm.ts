@@ -29,19 +29,6 @@ export type ContatoNota = {
   criadoEm: string
 }
 
-export type ContatoEvento = {
-  id: string
-  titulo: string
-  descricao: string
-  url: string
-  inicioData: string
-  inicioHora: string
-  fimData: string
-  fimHora: string
-  calendario: string
-  notificacao: boolean
-}
-
 export type ContatoInteracao = {
   id: string
   descricao: string
@@ -52,7 +39,7 @@ export type ContatoInteracao = {
 
 export type TimelineItem = {
   id: string
-  tipo: 'lead' | 'bot' | 'kanban' | 'nota' | 'interacao' | 'tarefa' | 'evento' | string
+  tipo: 'lead' | 'bot' | 'kanban' | 'nota' | 'interacao' | 'tarefa' | 'arquivo' | string
   titulo: string
   detalhe: string
   em: string
@@ -74,7 +61,6 @@ export type Contato = {
   automacaoAtiva: boolean
   tarefas: ContatoTarefa[]
   notas: ContatoNota[]
-  eventos: ContatoEvento[]
   interacoes: ContatoInteracao[]
   timeline: TimelineItem[]
   colunaId: string
@@ -115,7 +101,6 @@ export function contatoVazio(
     automacaoAtiva: true,
     tarefas: [],
     notas: [],
-    eventos: [],
     interacoes: [],
     timeline: [
       {

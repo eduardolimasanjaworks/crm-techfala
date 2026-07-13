@@ -2,7 +2,7 @@
  * Migra contatos antigos do localStorage para o shape completo.
  * Evita crash ao abrir painel após atualizar o app.
  */
-import { contatoVazio, type Contato, type ContatoEvento } from '@/shared/types/crm'
+import { contatoVazio, type Contato } from '@/shared/types/crm'
 
 export function normalizarContatos(lista: unknown): Contato[] {
   if (!Array.isArray(lista)) return []
@@ -21,21 +21,6 @@ export function normalizarContatos(lista: unknown): Contato[] {
       email: n.email ?? '',
       criadoEm: n.criadoEm ?? new Date().toISOString(),
     }))
-    const eventos = (c.eventos ?? []).map((e) => {
-      const old = e as ContatoEvento & { data?: string; hora?: string }
-      return {
-        id: old.id ?? crypto.randomUUID().slice(0, 8),
-        titulo: old.titulo ?? '',
-        descricao: old.descricao ?? '',
-        url: old.url ?? '',
-        inicioData: old.inicioData || old.data || '',
-        inicioHora: old.inicioHora || old.hora || '',
-        fimData: old.fimData ?? '',
-        fimHora: old.fimHora ?? '',
-        calendario: old.calendario ?? '',
-        notificacao: Boolean(old.notificacao),
-      }
-    })
     const interacoes = (c.interacoes ?? []).map((i) => {
       const old = i as Contato['interacoes'][number] & {
         hora?: string
@@ -59,8 +44,9 @@ export function normalizarContatos(lista: unknown): Contato[] {
         c.automacaoAtiva ??
         base.automacaoAtiva,
       notas,
-      eventos,
       interacoes,
+      tarefas: c.tarefas ?? base.tarefas,
+      timeline: c.timeline ?? base.timeline,
     }
   })
 }
