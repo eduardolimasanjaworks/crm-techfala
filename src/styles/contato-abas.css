@@ -343,3 +343,204 @@
   color: var(--muted-foreground);
   font-size: 12px;
 }
+
+/* —— Formulários das abas (espaçamento maduro) —— */
+.aba-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+  max-width: 100%;
+  padding: 4px 2px 16px;
+  box-sizing: border-box;
+}
+
+.aba-form .field,
+.campo-form .field,
+.cadastros-editor .field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  min-width: 0;
+}
+
+.aba-form .field > span,
+.campo-form .field > span,
+.cadastros-editor .field > span {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--foreground);
+  letter-spacing: -0.01em;
+}
+
+.aba-form .input,
+.aba-form textarea.input,
+.aba-form select.input,
+.campo-form .input,
+.campo-form textarea.input,
+.campo-form select.input,
+.campos-lista-scroll .input {
+  margin: 0;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  min-height: 42px;
+  padding: 10px 14px;
+  box-shadow: 0 1px 0 rgb(15 23 42 / 2%);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.aba-form textarea.input,
+.campo-form textarea.input {
+  min-height: 96px;
+  height: auto;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.aba-form .input:focus,
+.campo-form .input:focus,
+.campos-lista-scroll .input:focus {
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
+.phone-row {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.phone-row .ddi {
+  flex: 0 0 118px;
+  max-width: 130px;
+}
+
+.phone-row .input:not(.ddi) {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.inline-add {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.inline-add .input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.inline-add .btn {
+  flex-shrink: 0;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  background: var(--secondary);
+  color: var(--foreground);
+  border-radius: 9999px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.tag-chip:hover {
+  border-color: color-mix(in srgb, var(--primary) 30%, var(--border));
+}
+
+.tag-chip-add {
+  background: #fff;
+  border-style: dashed;
+  color: var(--muted-foreground);
+}
+
+.tag-suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--muted) 55%, #fff);
+}
+
+.empty-block {
+  text-align: center;
+  padding: 28px 16px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--muted) 40%, #fff);
+}
+
+.empty-block p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.empty-hint {
+  margin: 6px 0 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.kv-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.kv-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.kv-list li strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.campo-switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--muted) 35%, #fff);
+}
+
+.campo-switch-row label,
+.campo-switch-row > div > label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--foreground);
+}

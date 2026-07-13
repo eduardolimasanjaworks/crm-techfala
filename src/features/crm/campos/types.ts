@@ -20,6 +20,6 @@ export type CampoPersonalizado = {
   opcoes: string[]
 }
 
-export type CamposView = 'lista' | 'form' | 'cadastros'
+export type CamposView = 'lista' | 'form'
 
 export type NovoCampoInput = Omit<CampoPersonalizado, 'id'>

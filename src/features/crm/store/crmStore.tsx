@@ -176,7 +176,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       await recarregarBoard()
       setErro(null)
     } catch (e) {
-      setErro(e instanceof Error ? e.message : 'Falha ao sincronizar Chatwoot')
+      setErro(e instanceof Error ? e.message : 'Falha ao sincronizar Atendimento')
     } finally {
       setSyncChatwootEmAndamento(false)
     }

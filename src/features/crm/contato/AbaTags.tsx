@@ -43,17 +43,22 @@ export function AbaTags({ contato }: Props) {
       (x) => x.nome.toLowerCase() === t.toLowerCase(),
     )
     if (jaNoCatalogo) {
-      vincular(t)
+      vincular(
+        catalogoAtivo.find((x) => x.nome.toLowerCase() === t.toLowerCase())!
+          .nome,
+      )
       setNova('')
       return
     }
-    const criada = await criarTag({ nome: t })
-    if (!criada) {
-      window.alert('Não foi possível criar a tag. Tente novamente.')
-      return
+    try {
+      const criada = await criarTag({ nome: t })
+      vincular(criada.nome)
+      setNova('')
+    } catch (e) {
+      window.alert(
+        e instanceof Error ? e.message : 'Não foi possível criar a tag.',
+      )
     }
-    vincular(t)
-    setNova('')
   }
 
   function remover(tag: string) {

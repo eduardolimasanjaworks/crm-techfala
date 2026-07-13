@@ -15,6 +15,7 @@
 .contato-panel {
   position: relative;
   height: 100%;
+  max-height: 100dvh;
   max-width: 100vw;
   min-width: 0;
   background: var(--card);
@@ -113,7 +114,7 @@
   overflow: auto;
   display: flex;
   flex-direction: column;
-  padding: 12px 16px 12px 20px;
+  padding: 16px 20px 20px 24px;
 }
 
 .contato-body > * {
@@ -142,10 +143,14 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: 8px;
-  padding: 12px 20px 12px 24px;
+  gap: 10px;
+  padding: 14px 20px calc(14px + env(safe-area-inset-bottom, 0px)) 24px;
   border-top: 1px solid var(--border);
   flex-shrink: 0;
+  background: var(--card);
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
 }
 
 .danger-text {

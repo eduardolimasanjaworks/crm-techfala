@@ -148,12 +148,12 @@ export function CrmToolbar({
           type="button"
           className="btn btn-outline"
           disabled={syncChatwootEmAndamento}
-          title="Sincronizar contatos do Chatwoot"
+          title="Sincronizar contatos do Atendimento"
           onClick={() => void sincronizarChatwoot()}
         >
           <IconRefresh />
           <span className="btn-label">
-            {syncChatwootEmAndamento ? 'Sincronizando…' : 'Chatwoot'}
+            {syncChatwootEmAndamento ? 'Sincronizando…' : 'Sincronizar'}
           </span>
         </button>
 

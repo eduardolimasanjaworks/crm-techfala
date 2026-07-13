@@ -11,12 +11,12 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { crmFetch } from '@/shared/lib/crmApi'
+import { CrmApiError, crmFetch } from '@/shared/lib/crmApi'
 import type { NovaTagInput, TagCatalogo } from './types'
 
 type Ctx = {
   tags: TagCatalogo[]
-  criarTag: (input: NovaTagInput) => Promise<TagCatalogo | null>
+  criarTag: (input: NovaTagInput) => Promise<TagCatalogo>
   removerTag: (id: string) => void
 }
 
@@ -42,21 +42,41 @@ export function TagsProvider({ children }: { children: ReactNode }) {
 
   const criarTag = useCallback(async (input: NovaTagInput) => {
     const nome = input.nome.trim()
-    if (!nome) return null
+    if (!nome) throw new Error('Informe o nome da tag.')
+    const existente = tags.find(
+      (t) => t.nome.toLowerCase() === nome.toLowerCase(),
+    )
+    if (existente) {
+      if (!existente.ativo) {
+        const { tag } = await crmFetch<{ tag: TagCatalogo }>(
+          `/tags/${encodeURIComponent(existente.id)}`,
+          {
+            method: 'PATCH',
+            body: JSON.stringify({ ativo: true }),
+          },
+        )
+        setTags((prev) => prev.map((t) => (t.id === tag.id ? tag : t)))
+        return tag
+      }
+      return existente
+    }
     try {
       const { tag } = await crmFetch<{ tag: TagCatalogo }>('/tags', {
         method: 'POST',
         body: JSON.stringify({ nome, ativo: input.ativo ?? true }),
       })
       setTags((prev) => {
-        if (prev.some((t) => t.id === tag.id)) return prev
+        if (prev.some((t) => t.id === tag.id)) {
+          return prev.map((t) => (t.id === tag.id ? tag : t))
+        }
         return [tag, ...prev]
       })
       return tag
-    } catch {
-      return null
+    } catch (e) {
+      if (e instanceof CrmApiError) throw new Error(e.message)
+      throw new Error('Não foi possível criar a tag.')
     }
-  }, [])
+  }, [tags])
 
   const removerTag = useCallback((id: string) => {
     setTags((prev) => prev.filter((t) => t.id !== id))

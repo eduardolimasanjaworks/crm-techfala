@@ -10,7 +10,6 @@ import { KanbanBoard } from './components/KanbanBoard'
 import { ContatoPanel } from './contato/ContatoPanel'
 import { CamposPanel } from './campos/CamposPanel'
 import { CamposProvider } from './campos/camposStore'
-import { CadastrosProvider } from './cadastros/cadastrosStore'
 import { TagsPanel } from './tags/TagsPanel'
 import { TagsProvider } from './tags/tagsStore'
 import { UsuariosProvider } from './usuarios/usuariosStore'
@@ -69,9 +68,7 @@ export function CrmPage() {
       <UsuariosProvider>
         <TagsProvider>
           <CamposProvider>
-            <CadastrosProvider>
-              <CrmShell />
-            </CadastrosProvider>
+            <CrmShell />
           </CamposProvider>
         </TagsProvider>
       </UsuariosProvider>

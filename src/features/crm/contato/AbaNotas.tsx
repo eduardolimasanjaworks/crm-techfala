@@ -1,20 +1,18 @@
 /**
  * Aba Notas — formulário + cards com avatar.
- * Autor vem dos cadastros editáveis.
  */
 import { useState } from 'react'
 import type { Contato } from '@/shared/types/crm'
-import { useCadastros } from '../cadastros/cadastrosStore'
 import { useCrm } from '../store/crmStore'
 import { AbaCabecalho } from './AbaCabecalho'
 import { formatarNotaQuando, iniciais } from './format'
 
 type Props = { contato: Contato }
 
+const AUTOR = { nome: 'Você', email: '' }
+
 export function AbaNotas({ contato }: Props) {
   const { atualizarContato } = useCrm()
-  const { cadastros } = useCadastros()
-  const autor = cadastros.autorNotas
   const [aberto, setAberto] = useState(false)
   const [texto, setTexto] = useState('')
   const [editId, setEditId] = useState<string | null>(null)
@@ -32,8 +30,8 @@ export function AbaNotas({ contato }: Props) {
       const nota = {
         id: `nota-${crypto.randomUUID().slice(0, 8)}`,
         texto: texto.trim(),
-        autor: autor.nome,
-        email: autor.email,
+        autor: AUTOR.nome,
+        email: AUTOR.email,
         criadoEm: agora,
       }
       atualizarContato(contato.id, {
@@ -43,7 +41,7 @@ export function AbaNotas({ contato }: Props) {
             id: `tl-${crypto.randomUUID().slice(0, 8)}`,
             tipo: 'nota',
             titulo: 'Nota Interna',
-            detalhe: `Comentário registrado pelo usuário ${autor.email || autor.nome}. Conteúdo: ${texto.trim().slice(0, 80)}`,
+            detalhe: `Comentário registrado. Conteúdo: ${texto.trim().slice(0, 80)}`,
             em: agora,
           },
           ...contato.timeline,
@@ -114,12 +112,14 @@ export function AbaNotas({ contato }: Props) {
 
         {contato.notas.map((nota) => (
           <div key={nota.id} className="nota-card">
-            <span className="avatar">{iniciais(nota.autor || autor.nome)}</span>
+            <span className="avatar">{iniciais(nota.autor || AUTOR.nome)}</span>
             <div className="nota-body">
               <div className="nota-top">
                 <div className="min-w-0">
                   <span className="nota-autor">{nota.autor}</span>
-                  <span className="nota-email">{nota.email}</span>
+                  {nota.email ? (
+                    <span className="nota-email">{nota.email}</span>
+                  ) : null}
                 </div>
                 <span className="nota-quando">{formatarNotaQuando(nota.criadoEm)}</span>
               </div>

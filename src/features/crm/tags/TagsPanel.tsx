@@ -3,7 +3,7 @@
  * Lista simples com adicionar/remover, estilo leve como Campos.
  */
 import { useState } from 'react'
-import { IconPlus, IconX } from '@/shared/icons'
+import { IconX } from '@/shared/icons'
 import { useResizableWidth } from '@/shared/lib/useResizableWidth'
 import { useTags } from './tagsStore'
 
@@ -21,13 +21,20 @@ export function TagsPanel({ onClose }: Props) {
 
   async function adicionar() {
     const t = nova.trim()
-    if (!t || tags.some((x) => x.nome.toLowerCase() === t.toLowerCase())) return
-    const criada = await criarTag({ nome: t })
-    if (criada) {
+    if (!t) {
+      setErro('Digite o nome da tag.')
+      return
+    }
+    if (tags.some((x) => x.nome.toLowerCase() === t.toLowerCase() && x.ativo)) {
+      setErro('Essa tag já existe.')
+      return
+    }
+    try {
+      await criarTag({ nome: t })
       setNova('')
       setErro('')
-    } else {
-      setErro('Não foi possível criar a tag.')
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : 'Não foi possível criar a tag.')
     }
   }
 
@@ -79,7 +86,7 @@ export function TagsPanel({ onClose }: Props) {
               onKeyDown={(e) => e.key === 'Enter' && void adicionar()}
             />
             <button type="button" className="btn btn-primary" onClick={() => void adicionar()}>
-              <IconPlus />
+              Adicionar
             </button>
           </div>
           {erro ? <p className="empty-hint danger-text">{erro}</p> : null}

@@ -1,11 +1,10 @@
 /**
- * Sheet direito de Campos Personalizados (+ cadastros).
+ * Sheet direito de Campos Personalizados.
  * Redimensionável no desktop; full-bleed no mobile.
  */
 import { useState } from 'react'
 import { IconPlus, IconX } from '@/shared/icons'
 import { useResizableWidth } from '@/shared/lib/useResizableWidth'
-import { CadastrosEditor } from '../cadastros/CadastrosEditor'
 import { CampoForm } from './CampoForm'
 import { CamposLista } from './CamposLista'
 import type { CampoPersonalizado, CamposView } from './types'
@@ -37,13 +36,11 @@ export function CamposPanel({ onClose }: Props) {
   }
 
   const titulo =
-    view === 'cadastros'
-      ? 'Cadastros'
-      : view === 'form'
-        ? editando
-          ? 'Editar Campo'
-          : 'Novo Campo'
-        : 'Campos Personalizados'
+    view === 'form'
+      ? editando
+        ? 'Editar Campo'
+        : 'Novo Campo'
+      : 'Campos Personalizados'
 
   return (
     <div className="campos-overlay" role="presentation" onClick={onClose}>
@@ -82,13 +79,6 @@ export function CamposPanel({ onClose }: Props) {
               <div className="campos-header-actions">
                 <button
                   type="button"
-                  className="btn btn-outline"
-                  onClick={() => setView('cadastros')}
-                >
-                  Cadastros
-                </button>
-                <button
-                  type="button"
                   className="btn btn-primary"
                   onClick={abrirNovo}
                 >
@@ -107,26 +97,6 @@ export function CamposPanel({ onClose }: Props) {
             campo={editando ?? undefined}
             onVoltar={voltarLista}
           />
-        ) : null}
-
-        {view === 'cadastros' ? (
-          <>
-            <header className="campos-header">
-              <h2 id="custom-fields-modal-title" className="campos-title">
-                Cadastros
-              </h2>
-              <button
-                type="button"
-                className="btn btn-outline"
-                onClick={() => setView('lista')}
-              >
-                Voltar
-              </button>
-            </header>
-            <div className="campos-lista-scroll">
-              <CadastrosEditor />
-            </div>
-          </>
         ) : null}
       </aside>
     </div>
