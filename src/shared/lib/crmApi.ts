@@ -1,5 +1,6 @@
 /**
  * Cliente HTTP do CRM → `/api/crm/*` (mesmo origin do painel, cookie de sessão).
+ * Sempre `cache: 'no-store'` para evitar resposta stale.
  */
 
 export class CrmApiError extends Error {
@@ -25,9 +26,12 @@ export async function crmFetch<T>(
   if (body && isJsonBody && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json')
   }
+  headers.set('Cache-Control', 'no-cache')
+  headers.set('Pragma', 'no-cache')
   const res = await fetch(`/api/crm${path}`, {
     ...init,
     credentials: 'include',
+    cache: 'no-store',
     headers,
   })
   const data = (await res.json().catch(() => ({}))) as {

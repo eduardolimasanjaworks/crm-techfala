@@ -4,12 +4,12 @@
  */
 import { useMemo, useState } from 'react'
 import {
-  IconEllipsis,
   IconLayers,
   IconPlus,
   IconUsers,
 } from '@/shared/icons'
 import type { Contato } from '@/shared/types/crm'
+import { ColunaMenuButton } from '../components/ColunaMenuButton'
 import { ContactCard } from '../components/ContactCard'
 import { useCrm } from '../store/crmStore'
 import { buildFunnelSlices, slicePath } from './funnelGeometry'
@@ -161,9 +161,10 @@ export function FunnelView() {
               >
                 <IconPlus /> Adicionar
               </button>
-              <button type="button" className="btn btn-icon sm" aria-label="Mais">
-                <IconEllipsis />
-              </button>
+              <ColunaMenuButton
+                colunaId={ativo.col.id}
+                titulo={ativo.col.titulo}
+              />
             </div>
           </header>
 

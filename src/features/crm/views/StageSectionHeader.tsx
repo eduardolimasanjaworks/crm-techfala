@@ -1,11 +1,12 @@
 /**
  * Cabeçalho compartilhado das seções de etapa (Linhas / Lista / Funil).
- * Centraliza cor, contagem, valor e ações Adicionar/menu.
  */
-import { IconEllipsis, IconPlus } from '../../../shared/icons'
+import { IconPlus } from '../../../shared/icons'
+import { ColunaMenuButton } from '../components/ColunaMenuButton'
 import { formatBRL } from './viewUtils'
 
 type Props = {
+  colunaId: string
   titulo: string
   cor: string
   count: number
@@ -14,6 +15,7 @@ type Props = {
 }
 
 export function StageSectionHeader({
+  colunaId,
   titulo,
   cor,
   count,
@@ -37,9 +39,7 @@ export function StageSectionHeader({
         <button type="button" className="btn btn-ghost" onClick={onAdd}>
           <IconPlus /> Adicionar
         </button>
-        <button type="button" className="btn btn-icon sm" aria-label="Mais opções">
-          <IconEllipsis />
-        </button>
+        <ColunaMenuButton colunaId={colunaId} titulo={titulo} />
       </div>
     </div>
   )

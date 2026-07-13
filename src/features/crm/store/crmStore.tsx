@@ -1,6 +1,6 @@
 /**
  * Store React do CRM: Kanban + painel do contato.
- * Persiste no Postgres via `/api/crm/*` (cookie do painel).
+ * Persistência via `/api/crm/*` com debounce de PATCH (baixa latência, sem race).
  */
 import {
   createContext,
@@ -8,6 +8,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react'
@@ -16,13 +17,32 @@ import type { Coluna, Contato, ContatoArquivo, CrmState } from '@/shared/types/c
 import { ZOOM_MAX, ZOOM_MIN, ZOOM_STEP } from './defaultData'
 import { normalizarContatos } from './normalizarContatos'
 
+export type CrmFiltro = {
+  colunaIds: string[]
+  tags: string[]
+  comTelefone: boolean
+  comEmail: boolean
+}
+
+const FILTRO_VAZIO: CrmFiltro = {
+  colunaIds: [],
+  tags: [],
+  comTelefone: false,
+  comEmail: false,
+}
+
+const PATCH_DEBOUNCE_MS = 280
+
 type CrmContextValue = CrmState & {
   carregando: boolean
   erro: string | null
+  filtro: CrmFiltro
   colunasOrdenadas: Coluna[]
   contatosFiltrados: Contato[]
   contatoAberto: Contato | null
   setBusca: (v: string) => void
+  setFiltro: (patch: Partial<CrmFiltro>) => void
+  limparFiltro: () => void
   zoomIn: () => void
   zoomOut: () => void
   adicionarColuna: (titulo?: string) => void
@@ -49,14 +69,65 @@ function upsertContato(lista: Contato[], contato: Contato): Contato[] {
   return next
 }
 
+function aplicaFiltro(lista: Contato[], busca: string, filtro: CrmFiltro): Contato[] {
+  const q = busca.trim().toLowerCase()
+  return lista.filter((c) => {
+    if (filtro.colunaIds.length && !filtro.colunaIds.includes(c.colunaId)) {
+      return false
+    }
+    if (filtro.tags.length && !filtro.tags.every((t) => c.tags.includes(t))) {
+      return false
+    }
+    if (filtro.comTelefone && !c.telefone?.trim()) return false
+    if (filtro.comEmail && !c.email?.trim()) return false
+    if (!q) return true
+    return (
+      c.nome.toLowerCase().includes(q) ||
+      c.email?.toLowerCase().includes(q) ||
+      c.telefone?.includes(q) ||
+      c.tags.some((t) => t.toLowerCase().includes(q))
+    )
+  })
+}
+
 export function CrmProvider({ children }: { children: ReactNode }) {
   const [colunas, setColunas] = useState<Coluna[]>([])
   const [contatos, setContatos] = useState<Contato[]>([])
   const [busca, setBusca] = useState('')
+  const [filtro, setFiltroState] = useState<CrmFiltro>(FILTRO_VAZIO)
   const [zoom, setZoom] = useState(1)
   const [contatoAbertoId, setContatoAbertoId] = useState<string | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
+
+  const pendingPatches = useRef(new Map<string, Partial<Contato>>())
+  const patchTimers = useRef(new Map<string, number>())
+  const patchSeq = useRef(new Map<string, number>())
+
+  const flushPatch = useCallback(async (id: string) => {
+    const body = pendingPatches.current.get(id)
+    pendingPatches.current.delete(id)
+    patchTimers.current.delete(id)
+    if (!body || Object.keys(body).length === 0) return
+
+    const seq = (patchSeq.current.get(id) ?? 0) + 1
+    patchSeq.current.set(id, seq)
+    try {
+      const { contato } = await crmFetch<{ contato: Contato }>(
+        `/contatos/${id}`,
+        { method: 'PATCH', body: JSON.stringify(body) },
+      )
+      if (patchSeq.current.get(id) !== seq) return
+      if (pendingPatches.current.has(id)) return
+      const normalizado = normalizarContatos([contato])[0]
+      setContatos((prev) => upsertContato(prev, normalizado))
+      setErro(null)
+    } catch (e) {
+      if (patchSeq.current.get(id) === seq) {
+        setErro(e instanceof Error ? e.message : 'Erro ao atualizar contato')
+      }
+    }
+  }, [])
 
   useEffect(() => {
     let cancelado = false
@@ -79,6 +150,8 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     })()
     return () => {
       cancelado = true
+      for (const t of patchTimers.current.values()) window.clearTimeout(t)
+      patchTimers.current.clear()
     }
   }, [])
 
@@ -87,21 +160,21 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     [colunas],
   )
 
-  const contatosFiltrados = useMemo(() => {
-    const q = busca.trim().toLowerCase()
-    if (!q) return contatos
-    return contatos.filter(
-      (c) =>
-        c.nome.toLowerCase().includes(q) ||
-        c.email?.toLowerCase().includes(q) ||
-        c.telefone?.includes(q),
-    )
-  }, [contatos, busca])
+  const contatosFiltrados = useMemo(
+    () => aplicaFiltro(contatos, busca, filtro),
+    [contatos, busca, filtro],
+  )
 
   const contatoAberto = useMemo(
     () => contatos.find((c) => c.id === contatoAbertoId) ?? null,
     [contatos, contatoAbertoId],
   )
+
+  const setFiltro = useCallback((patch: Partial<CrmFiltro>) => {
+    setFiltroState((prev) => ({ ...prev, ...patch }))
+  }, [])
+
+  const limparFiltro = useCallback(() => setFiltroState(FILTRO_VAZIO), [])
 
   const zoomIn = useCallback(() => {
     setZoom((z) => Math.min(ZOOM_MAX, +(z + ZOOM_STEP).toFixed(2)))
@@ -143,23 +216,25 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     })()
   }, [])
 
-  const atualizarContato = useCallback((id: string, patch: Partial<Contato>) => {
-    setContatos((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, ...patch } : c)),
-    )
-    void (async () => {
-      try {
-        const { contato } = await crmFetch<{ contato: Contato }>(
-          `/contatos/${id}`,
-          { method: 'PATCH', body: JSON.stringify(patch) },
-        )
-        const normalizado = normalizarContatos([contato])[0]
-        setContatos((prev) => upsertContato(prev, normalizado))
-      } catch (e) {
-        setErro(e instanceof Error ? e.message : 'Erro ao atualizar contato')
+  const atualizarContato = useCallback(
+    (id: string, patch: Partial<Contato>) => {
+      setContatos((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, ...patch } : c)),
+      )
+      const merged = {
+        ...(pendingPatches.current.get(id) ?? {}),
+        ...patch,
       }
-    })()
-  }, [])
+      pendingPatches.current.set(id, merged)
+      const prevTimer = patchTimers.current.get(id)
+      if (prevTimer) window.clearTimeout(prevTimer)
+      const t = window.setTimeout(() => {
+        void flushPatch(id)
+      }, PATCH_DEBOUNCE_MS)
+      patchTimers.current.set(id, t)
+    },
+    [flushPatch],
+  )
 
   const uploadArquivo = useCallback((contatoId: string, file: File) => {
     void (async () => {
@@ -191,10 +266,9 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     )
     void (async () => {
       try {
-        await crmFetch(
-          `/contatos/${contatoId}/arquivos/${arquivoId}`,
-          { method: 'DELETE' },
-        )
+        await crmFetch(`/contatos/${contatoId}/arquivos/${arquivoId}`, {
+          method: 'DELETE',
+        })
       } catch (e) {
         setErro(e instanceof Error ? e.message : 'Erro ao excluir arquivo')
       }
@@ -205,6 +279,10 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   const fecharContato = useCallback(() => setContatoAbertoId(null), [])
 
   const removerContato = useCallback((id: string) => {
+    const t = patchTimers.current.get(id)
+    if (t) window.clearTimeout(t)
+    patchTimers.current.delete(id)
+    pendingPatches.current.delete(id)
     setContatos((prev) => prev.filter((c) => c.id !== id))
     setContatoAbertoId((aberto) => (aberto === id ? null : aberto))
     void (async () => {
@@ -313,10 +391,13 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     contatoAbertoId,
     carregando,
     erro,
+    filtro,
     colunasOrdenadas,
     contatosFiltrados,
     contatoAberto,
     setBusca,
+    setFiltro,
+    limparFiltro,
     zoomIn,
     zoomOut,
     adicionarColuna,

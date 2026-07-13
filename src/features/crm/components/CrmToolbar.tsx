@@ -1,11 +1,10 @@
 /**
- * Toolbar do CRM: busca, filtro, views, zoom e ações.
- * Controla o modo de visualização via props (kanban/lista/linhas/funil).
+ * Toolbar do CRM: busca, filtro real, views, zoom e ações.
  */
+import { useEffect, useState } from 'react'
 import {
   IconArrowUpDown,
   IconExpand,
-  IconFilter,
   IconLayoutGrid,
   IconList,
   IconListChecks,
@@ -18,6 +17,7 @@ import {
 } from '@/shared/icons'
 import type { ViewMode } from '@/shared/types/views'
 import { useCrm } from '../store/crmStore'
+import { FiltroPanel } from './FiltroPanel'
 
 type Props = {
   viewMode: ViewMode
@@ -41,6 +41,16 @@ export function CrmToolbar({
   onAbrirCampos,
 }: Props) {
   const { busca, setBusca, zoomIn, zoomOut, adicionarColuna } = useCrm()
+  const [filtroAberto, setFiltroAberto] = useState(false)
+
+  useEffect(() => {
+    if (!filtroAberto) return
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setFiltroAberto(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [filtroAberto])
 
   function toggleFullscreen() {
     if (!document.fullscreenElement) {
@@ -62,9 +72,11 @@ export function CrmToolbar({
         />
       </div>
 
-      <button type="button" className="btn btn-icon" aria-label="Filtrar">
-        <IconFilter />
-      </button>
+      <FiltroPanel
+        aberto={filtroAberto}
+        onToggle={() => setFiltroAberto((v) => !v)}
+        onClose={() => setFiltroAberto(false)}
+      />
 
       <div className="view-modes">
         <div className="view-modes-group" id="crm-view-mode-selector">

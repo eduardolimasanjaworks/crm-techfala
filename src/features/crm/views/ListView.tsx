@@ -6,10 +6,10 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   IconChevronLeft,
   IconChevronRight,
-  IconEllipsis,
   IconPlus,
   IconUsers,
 } from '@/shared/icons'
+import { ColunaMenuButton } from '../components/ColunaMenuButton'
 import { ContactCard } from '../components/ContactCard'
 import { useCrm } from '../store/crmStore'
 import { PAGE_SIZE, hexToRgba, somaValores, formatBRL } from './viewUtils'
@@ -100,9 +100,7 @@ export function ListView() {
           >
             <IconPlus /> Adicionar
           </button>
-          <button type="button" className="btn btn-icon sm" aria-label="Mais opções">
-            <IconEllipsis />
-          </button>
+          <ColunaMenuButton colunaId={coluna.id} titulo={coluna.titulo} />
         </div>
 
         <button

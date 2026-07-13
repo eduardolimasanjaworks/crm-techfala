@@ -25,6 +25,7 @@ function RowSection({
   return (
     <section className="rows-section">
       <StageSectionHeader
+        colunaId={coluna.id}
         titulo={coluna.titulo}
         cor={coluna.cor}
         count={contatos.length}

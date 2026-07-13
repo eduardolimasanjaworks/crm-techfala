@@ -179,6 +179,89 @@
   display: none;
 }
 
+.filtro-wrap {
+  position: relative;
+}
+
+.btn-icon.is-active-filter {
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
+.filtro-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 40;
+  width: min(320px, calc(100vw - 32px));
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--background, #fff);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filtro-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.filtro-sec h4 {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.filtro-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.filtro-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background: transparent;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.filtro-chip .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+}
+
+.filtro-chip.is-on {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--foreground);
+}
+
+.filtro-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  margin: 4px 0;
+}
+
+.filtro-clear {
+  width: 100%;
+}
+
 @media (min-width: 1024px) {
   .btn-label {
     display: inline;

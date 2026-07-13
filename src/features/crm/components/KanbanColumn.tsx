@@ -3,20 +3,19 @@
  * Aceita drop de cards e reordenação de colunas.
  */
 import { useState } from 'react'
-import { IconEllipsis, IconGrip, IconPlus } from '@/shared/icons'
+import { IconGrip, IconPlus } from '@/shared/icons'
 import type { Coluna, Contato } from '@/shared/types/crm'
 import { useCrm } from '../store/crmStore'
 import { AddContactForm } from './AddContactForm'
+import { ColunaMenuButton } from './ColunaMenuButton'
 import { ContactCard } from './ContactCard'
 import { EmptyColumn } from './EmptyColumn'
 
 type Props = { coluna: Coluna; contatos: Contato[] }
 
 export function KanbanColumn({ coluna, contatos }: Props) {
-  const { moverContato, reordenarColunas, removerColuna, renomearColuna } =
-    useCrm()
+  const { moverContato, reordenarColunas } = useCrm()
   const [adding, setAdding] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
   const [over, setOver] = useState(false)
 
   return (
@@ -57,40 +56,7 @@ export function KanbanColumn({ coluna, contatos }: Props) {
           <span className="badge">{contatos.length}</span>
         </div>
 
-        <div className="col-menu">
-          <button
-            type="button"
-            className="btn btn-ghost btn-icon sm"
-            aria-label="Menu da coluna"
-            onClick={() => setMenuOpen((v) => !v)}
-          >
-            <IconEllipsis />
-          </button>
-          {menuOpen ? (
-            <div className="col-menu-panel">
-              <button
-                type="button"
-                onClick={() => {
-                  const titulo = window.prompt('Novo nome', coluna.titulo)
-                  if (titulo) renomearColuna(coluna.id, titulo)
-                  setMenuOpen(false)
-                }}
-              >
-                Renomear
-              </button>
-              <button
-                type="button"
-                className="danger"
-                onClick={() => {
-                  removerColuna(coluna.id)
-                  setMenuOpen(false)
-                }}
-              >
-                Remover
-              </button>
-            </div>
-          ) : null}
-        </div>
+        <ColunaMenuButton colunaId={coluna.id} titulo={coluna.titulo} />
       </div>
 
       <div className="col-body">
