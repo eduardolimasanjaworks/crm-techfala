@@ -138,6 +138,7 @@ export function CrmToolbar({
         <button
           type="button"
           className="btn btn-primary"
+          title="Nova Coluna"
           onClick={() => adicionarColuna()}
         >
           <IconPlus />
@@ -160,6 +161,7 @@ export function CrmToolbar({
         <button
           type="button"
           className="btn btn-outline"
+          title="Tarefas"
           onClick={onAbrirTarefas}
         >
           <IconListChecks />
@@ -169,6 +171,7 @@ export function CrmToolbar({
         <button
           type="button"
           className="btn btn-outline"
+          title="Campos personalizados"
           onClick={onAbrirCampos}
         >
           <IconSliders />

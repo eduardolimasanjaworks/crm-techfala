@@ -262,20 +262,30 @@
   width: 100%;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .btn-label {
     display: inline;
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
+  .crm-toolbar {
+    row-gap: 8px;
+  }
+
   .toolbar-right {
     margin-left: 0;
     width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 
   .search-wrap {
     flex-basis: 100%;
     max-width: none;
+  }
+
+  .view-modes {
+    max-width: 100%;
   }
 }

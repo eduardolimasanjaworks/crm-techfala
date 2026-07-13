@@ -1,6 +1,6 @@
 /**
  * Sheet direito de Tarefas: overlay + lista | form | calendário.
- * Aberto pelo botão Tarefas da toolbar do CRM.
+ * Redimensionável no desktop; full-bleed no mobile.
  */
 import { useState } from 'react'
 import {
@@ -10,6 +10,7 @@ import {
   IconPlus,
   IconX,
 } from '@/shared/icons'
+import { useResizableWidth } from '@/shared/lib/useResizableWidth'
 import { TarefaForm } from './TarefaForm'
 import { TarefasCalendario } from './TarefasCalendario'
 import { TarefasLista } from './TarefasLista'
@@ -21,6 +22,11 @@ export function TarefasPanel({ onClose }: Props) {
   const [view, setView] = useState<TarefasView>('lista')
   const [ordenacao, setOrdenacao] = useState<TarefaOrdenacao>('vencimento')
   const largo = view === 'calendario'
+  const { cssWidth, startResize, canResize } = useResizableWidth({
+    storageKey: largo ? 'techfala-tarefas-cal-w' : 'techfala-tarefas-panel-w',
+    minDesktop: largo ? 560 : 360,
+    defaultRatio: largo ? 0.72 : 0.42,
+  })
 
   return (
     <div className="tarefas-overlay" role="presentation" onClick={onClose}>
@@ -28,8 +34,19 @@ export function TarefasPanel({ onClose }: Props) {
         className={`tarefas-sheet${largo ? ' is-wide' : ''}`}
         role="dialog"
         aria-labelledby="task-panel-title"
+        style={{ width: cssWidth, maxWidth: '100vw' }}
         onClick={(e) => e.stopPropagation()}
       >
+        {canResize ? (
+          <div
+            className="sheet-resize"
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Redimensionar painel"
+            title="Arraste para ajustar a largura"
+            onPointerDown={startResize}
+          />
+        ) : null}
         <button
           type="button"
           className="tarefas-close"

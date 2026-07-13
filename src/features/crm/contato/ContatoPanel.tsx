@@ -20,7 +20,7 @@ import { AbaTimeline } from './AbaTimeline'
 export function ContatoPanel() {
   const { contatoAberto, fecharContato, removerContato } = useCrm()
   const [aba, setAba] = useState<AbaContatoId>('dados')
-  const { width, startResize } = usePanelWidth()
+  const { cssWidth, startResize, canResize } = usePanelWidth()
 
   if (!contatoAberto) return null
 
@@ -32,17 +32,19 @@ export function ContatoPanel() {
         className="contato-panel"
         role="dialog"
         aria-label="Editar Contato"
-        style={{ width: `min(${width}px, 100vw)` }}
+        style={{ width: cssWidth }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div
-          className="contato-resize"
-          role="separator"
-          aria-orientation="vertical"
-          aria-label="Redimensionar painel"
-          title="Arraste para ajustar a largura"
-          onPointerDown={startResize}
-        />
+        {canResize ? (
+          <div
+            className="contato-resize"
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Redimensionar painel"
+            title="Arraste para ajustar a largura"
+            onPointerDown={startResize}
+          />
+        ) : null}
 
         <header className="contato-header">
           <div className="contato-header-text">

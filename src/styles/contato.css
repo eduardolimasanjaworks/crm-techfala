@@ -74,13 +74,15 @@
 
 .contato-tabs {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 4px;
   padding: 8px 12px 8px 20px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
-  max-height: 120px;
-  overflow-y: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
 }
 
 .contato-tab {
@@ -107,15 +109,32 @@
 .contato-body {
   flex: 1;
   min-height: 0;
-  overflow: hidden;
+  overflow: auto;
   display: flex;
   flex-direction: column;
-  padding: 12px 20px 12px 24px;
+  padding: 12px 16px 12px 20px;
 }
 
 .contato-body > * {
-  flex: 1;
+  flex: 1 0 auto;
   min-height: 0;
+}
+
+@media (max-width: 640px) {
+  .contato-header,
+  .contato-body,
+  .contato-footer {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .contato-tabs {
+    padding-left: 12px;
+  }
+
+  .contato-resize {
+    display: none;
+  }
 }
 
 .contato-footer {
