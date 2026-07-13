@@ -16,8 +16,10 @@ export type CampoPersonalizado = {
   descricao: string
   ativo: boolean
   tipo: CampoTipo
+  /** Opções quando tipo = lista */
+  opcoes: string[]
 }
 
-export type CamposView = 'lista' | 'form'
+export type CamposView = 'lista' | 'form' | 'cadastros'
 
 export type NovoCampoInput = Omit<CampoPersonalizado, 'id'>

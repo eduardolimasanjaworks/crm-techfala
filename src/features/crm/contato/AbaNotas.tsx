@@ -1,21 +1,20 @@
 /**
- * Aba Notas — formulário + cards com avatar (layout do dump).
+ * Aba Notas — formulário + cards com avatar.
+ * Autor vem dos cadastros editáveis.
  */
 import { useState } from 'react'
 import type { Contato } from '@/shared/types/crm'
+import { useCadastros } from '../cadastros/cadastrosStore'
 import { useCrm } from '../store/crmStore'
 import { AbaCabecalho } from './AbaCabecalho'
 import { formatarNotaQuando, iniciais } from './format'
 
 type Props = { contato: Contato }
 
-const AUTOR = {
-  nome: 'Eduardo Lima',
-  email: 'eduardo.lima@techfala365.com.br',
-}
-
 export function AbaNotas({ contato }: Props) {
   const { atualizarContato } = useCrm()
+  const { cadastros } = useCadastros()
+  const autor = cadastros.autorNotas
   const [aberto, setAberto] = useState(false)
   const [texto, setTexto] = useState('')
   const [editId, setEditId] = useState<string | null>(null)
@@ -33,8 +32,8 @@ export function AbaNotas({ contato }: Props) {
       const nota = {
         id: `nota-${crypto.randomUUID().slice(0, 8)}`,
         texto: texto.trim(),
-        autor: AUTOR.nome,
-        email: AUTOR.email,
+        autor: autor.nome,
+        email: autor.email,
         criadoEm: agora,
       }
       atualizarContato(contato.id, {
@@ -44,7 +43,7 @@ export function AbaNotas({ contato }: Props) {
             id: `tl-${crypto.randomUUID().slice(0, 8)}`,
             tipo: 'nota',
             titulo: 'Nota Interna',
-            detalhe: `Comentário registrado pelo usuário ${AUTOR.email}. Conteúdo: ${texto.trim().slice(0, 80)}`,
+            detalhe: `Comentário registrado pelo usuário ${autor.email || autor.nome}. Conteúdo: ${texto.trim().slice(0, 80)}`,
             em: agora,
           },
           ...contato.timeline,
@@ -114,7 +113,7 @@ export function AbaNotas({ contato }: Props) {
 
         {contato.notas.map((nota) => (
           <div key={nota.id} className="nota-card">
-            <span className="avatar">{iniciais(nota.autor || AUTOR.nome)}</span>
+            <span className="avatar">{iniciais(nota.autor || autor.nome)}</span>
             <div className="nota-body">
               <div className="nota-top">
                 <div className="min-w-0">

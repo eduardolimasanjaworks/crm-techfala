@@ -43,11 +43,3 @@ export function rotuloDiaTimeline(iso: string): string {
     year: '2-digit',
   })
 }
-
-export const RESPONSAVEIS = [
-  'Eduardo Lima',
-  'Victor Feliciano',
-  'Você',
-]
-
-export const CALENDARIOS = ['Padrão', 'Comercial', 'Suporte']

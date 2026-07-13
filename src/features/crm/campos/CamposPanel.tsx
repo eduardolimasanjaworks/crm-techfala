@@ -1,10 +1,11 @@
 /**
- * Sheet direito de Campos Personalizados.
+ * Sheet direito de Campos Personalizados (+ cadastros).
  * Redimensionável no desktop; full-bleed no mobile.
  */
 import { useState } from 'react'
 import { IconPlus, IconX } from '@/shared/icons'
 import { useResizableWidth } from '@/shared/lib/useResizableWidth'
+import { CadastrosEditor } from '../cadastros/CadastrosEditor'
 import { CampoForm } from './CampoForm'
 import { CamposLista } from './CamposLista'
 import type { CamposView } from './types'
@@ -18,6 +19,13 @@ export function CamposPanel({ onClose }: Props) {
     minDesktop: 360,
     defaultRatio: 0.4,
   })
+
+  const titulo =
+    view === 'cadastros'
+      ? 'Cadastros'
+      : view === 'form'
+        ? 'Novo Campo'
+        : 'Campos Personalizados'
 
   return (
     <div className="campos-overlay" role="presentation" onClick={onClose}>
@@ -51,22 +59,53 @@ export function CamposPanel({ onClose }: Props) {
           <>
             <header className="campos-header">
               <h2 id="custom-fields-modal-title" className="campos-title">
-                Campos Personalizados
+                {titulo}
               </h2>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => setView('form')}
-              >
-                <IconPlus />
-                Campo
-              </button>
+              <div className="campos-header-actions">
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  onClick={() => setView('cadastros')}
+                >
+                  Cadastros
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => setView('form')}
+                >
+                  <IconPlus />
+                  Campo
+                </button>
+              </div>
             </header>
             <CamposLista />
           </>
-        ) : (
+        ) : null}
+
+        {view === 'form' ? (
           <CampoForm onVoltar={() => setView('lista')} />
-        )}
+        ) : null}
+
+        {view === 'cadastros' ? (
+          <>
+            <header className="campos-header">
+              <h2 id="custom-fields-modal-title" className="campos-title">
+                Cadastros
+              </h2>
+              <button
+                type="button"
+                className="btn btn-outline"
+                onClick={() => setView('lista')}
+              >
+                Voltar
+              </button>
+            </header>
+            <div className="campos-lista-scroll">
+              <CadastrosEditor />
+            </div>
+          </>
+        ) : null}
       </aside>
     </div>
   )

@@ -39,7 +39,7 @@ export function StageSectionHeader({
         <button type="button" className="btn btn-ghost" onClick={onAdd}>
           <IconPlus /> Adicionar
         </button>
-        <ColunaMenuButton colunaId={colunaId} titulo={titulo} />
+        <ColunaMenuButton colunaId={colunaId} titulo={titulo} cor={cor} />
       </div>
     </div>
   )

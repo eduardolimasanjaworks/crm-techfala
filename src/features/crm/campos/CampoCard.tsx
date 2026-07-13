@@ -24,7 +24,12 @@ export function CampoCard({ campo, onRemover }: Props) {
         {campo.descricao ? (
           <p className="campo-card-desc">{campo.descricao}</p>
         ) : null}
-        <p className="campo-card-meta">{rotuloTipo(campo.tipo)}</p>
+        <p className="campo-card-meta">
+          {rotuloTipo(campo.tipo)}
+          {campo.tipo === 'lista' && campo.opcoes?.length
+            ? ` · ${campo.opcoes.length} opções`
+            : ''}
+        </p>
       </div>
       <button
         type="button"

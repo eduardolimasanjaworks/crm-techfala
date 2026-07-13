@@ -100,7 +100,7 @@ export function ListView() {
           >
             <IconPlus /> Adicionar
           </button>
-          <ColunaMenuButton colunaId={coluna.id} titulo={coluna.titulo} />
+          <ColunaMenuButton colunaId={coluna.id} titulo={coluna.titulo} cor={coluna.cor} />
         </div>
 
         <button

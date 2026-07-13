@@ -1,11 +1,11 @@
 /**
- * Aba Eventos — título, início/fim, URL, calendário e notificação.
+ * Aba Eventos — CRUD completo (criar/editar/excluir).
  */
 import { useState } from 'react'
-import type { Contato } from '@/shared/types/crm'
+import type { Contato, ContatoEvento } from '@/shared/types/crm'
+import { useCadastros } from '../cadastros/cadastrosStore'
 import { useCrm } from '../store/crmStore'
 import { AbaCabecalho } from './AbaCabecalho'
-import { CALENDARIOS } from './format'
 
 type Props = { contato: Contato }
 
@@ -23,33 +23,73 @@ const vazio = {
 
 export function AbaEventos({ contato }: Props) {
   const { atualizarContato } = useCrm()
+  const { cadastros } = useCadastros()
   const [aberto, setAberto] = useState(false)
+  const [editId, setEditId] = useState<string | null>(null)
   const [form, setForm] = useState(vazio)
 
   const valido = form.titulo.trim().length > 0
 
+  function abrirNovo() {
+    setEditId(null)
+    setForm(vazio)
+    setAberto(true)
+  }
+
+  function abrirEditar(e: ContatoEvento) {
+    setEditId(e.id)
+    setForm({
+      titulo: e.titulo,
+      descricao: e.descricao,
+      url: e.url,
+      inicioData: e.inicioData,
+      inicioHora: e.inicioHora,
+      fimData: e.fimData,
+      fimHora: e.fimHora,
+      calendario: e.calendario,
+      notificacao: e.notificacao,
+    })
+    setAberto(true)
+  }
+
   function salvar() {
     if (!valido) return
-    const evento = {
-      id: `ev-${crypto.randomUUID().slice(0, 8)}`,
-      ...form,
-      titulo: form.titulo.trim(),
+    const dados = { ...form, titulo: form.titulo.trim() }
+    if (editId) {
+      atualizarContato(contato.id, {
+        eventos: contato.eventos.map((e) =>
+          e.id === editId ? { ...e, ...dados } : e,
+        ),
+      })
+    } else {
+      const evento = {
+        id: `ev-${crypto.randomUUID().slice(0, 8)}`,
+        ...dados,
+      }
+      atualizarContato(contato.id, {
+        eventos: [evento, ...contato.eventos],
+        timeline: [
+          {
+            id: `tl-${crypto.randomUUID().slice(0, 8)}`,
+            tipo: 'evento',
+            titulo: 'Evento',
+            detalhe: evento.titulo,
+            em: new Date().toISOString(),
+          },
+          ...contato.timeline,
+        ],
+      })
     }
-    atualizarContato(contato.id, {
-      eventos: [evento, ...contato.eventos],
-      timeline: [
-        {
-          id: `tl-${crypto.randomUUID().slice(0, 8)}`,
-          tipo: 'evento',
-          titulo: 'Evento',
-          detalhe: evento.titulo,
-          em: new Date().toISOString(),
-        },
-        ...contato.timeline,
-      ],
-    })
     setForm(vazio)
+    setEditId(null)
     setAberto(false)
+  }
+
+  function excluir(id: string) {
+    if (!window.confirm('Excluir este evento?')) return
+    atualizarContato(contato.id, {
+      eventos: contato.eventos.filter((e) => e.id !== id),
+    })
   }
 
   const n = contato.eventos.length
@@ -60,7 +100,7 @@ export function AbaEventos({ contato }: Props) {
       <AbaCabecalho
         contagem={contagem}
         botaoLabel="Novo evento"
-        onNovo={() => setAberto(true)}
+        onNovo={abrirNovo}
         desabilitado={aberto}
       />
 
@@ -136,7 +176,7 @@ export function AbaEventos({ contato }: Props) {
                   onChange={(e) => setForm({ ...form, calendario: e.target.value })}
                 >
                   <option value="">Selecione</option>
-                  {CALENDARIOS.map((c) => (
+                  {cadastros.calendarios.map((c) => (
                     <option key={c} value={c}>
                       {c}
                     </option>
@@ -157,7 +197,14 @@ export function AbaEventos({ contato }: Props) {
               </label>
             </div>
             <div className="form-actions">
-              <button type="button" className="btn btn-ghost" onClick={() => setAberto(false)}>
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => {
+                  setAberto(false)
+                  setEditId(null)
+                }}
+              >
                 Cancelar
               </button>
               <button
@@ -174,12 +221,33 @@ export function AbaEventos({ contato }: Props) {
 
         {contato.eventos.map((e) => (
           <div key={e.id} className="item-card">
-            <strong>{e.titulo}</strong>
-            <p>
-              {e.inicioData} {e.inicioHora}
-              {e.fimData ? ` → ${e.fimData} ${e.fimHora}` : ''}
-            </p>
-            {e.url ? <p className="meta-link">{e.url}</p> : null}
+            <div className="item-card-main">
+              <strong>{e.titulo}</strong>
+              <p>
+                {e.inicioData} {e.inicioHora}
+                {e.fimData ? ` → ${e.fimData} ${e.fimHora}` : ''}
+                {e.calendario ? ` · ${e.calendario}` : ''}
+              </p>
+              {e.url ? <p className="meta-link">{e.url}</p> : null}
+            </div>
+            <div className="item-acoes">
+              <button
+                type="button"
+                className="btn btn-ghost btn-icon sm"
+                aria-label="Editar"
+                onClick={() => abrirEditar(e)}
+              >
+                ✎
+              </button>
+              <button
+                type="button"
+                className="btn btn-ghost btn-icon sm danger-text"
+                aria-label="Excluir"
+                onClick={() => excluir(e.id)}
+              >
+                🗑
+              </button>
+            </div>
           </div>
         ))}
       </div>

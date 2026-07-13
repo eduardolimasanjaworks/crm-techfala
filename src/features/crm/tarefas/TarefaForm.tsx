@@ -4,7 +4,7 @@
  */
 import { useState } from 'react'
 import { IconArrowLeft, IconCalendar, IconClock } from '@/shared/icons'
-import { RESPONSAVEIS } from '../contato/format'
+import { useCadastros } from '../cadastros/cadastrosStore'
 import { STATUS_OPCOES } from './tarefaStatus'
 import { useTarefas } from './tarefasStore'
 import type { TarefaStatus } from './types'
@@ -15,6 +15,7 @@ type Props = {
 
 export function TarefaForm({ onVoltar }: Props) {
   const { criar } = useTarefas()
+  const { cadastros } = useCadastros()
   const [titulo, setTitulo] = useState('')
   const [vencimento, setVencimento] = useState('')
   const [hora, setHora] = useState('09:00')
@@ -121,7 +122,7 @@ export function TarefaForm({ onVoltar }: Props) {
             onChange={(e) => setResponsavel(e.target.value)}
           >
             <option value="">Selecionar responsável</option>
-            {RESPONSAVEIS.map((r) => (
+            {cadastros.responsaveis.map((r) => (
               <option key={r} value={r}>
                 {r}
               </option>

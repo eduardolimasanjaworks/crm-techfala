@@ -56,6 +56,7 @@ type CrmContextValue = CrmState & {
   moverContato: (contatoId: string, colunaDestinoId: string) => void
   reordenarColunas: (origemId: string, destinoId: string) => void
   renomearColuna: (id: string, titulo: string) => void
+  alterarCorColuna: (id: string, cor: string) => void
   removerColuna: (id: string) => void
   sincronizarChatwoot: () => Promise<void>
   syncChatwootEmAndamento: boolean
@@ -389,6 +390,24 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     })()
   }, [])
 
+  const alterarCorColuna = useCallback((id: string, cor: string) => {
+    if (!cor.trim()) return
+    setColunas((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, cor } : c)),
+    )
+    void (async () => {
+      try {
+        const { coluna } = await crmFetch<{ coluna: Coluna }>(
+          `/colunas/${id}`,
+          { method: 'PATCH', body: JSON.stringify({ cor }) },
+        )
+        setColunas((prev) => prev.map((c) => (c.id === id ? coluna : c)))
+      } catch (e) {
+        setErro(e instanceof Error ? e.message : 'Erro ao alterar cor')
+      }
+    })()
+  }, [])
+
   const removerColuna = useCallback((id: string) => {
     setColunas((prev) =>
       prev.filter((c) => c.id !== id).map((c, i) => ({ ...c, ordem: i })),
@@ -431,6 +450,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     moverContato,
     reordenarColunas,
     renomearColuna,
+    alterarCorColuna,
     removerColuna,
     sincronizarChatwoot,
     syncChatwootEmAndamento,

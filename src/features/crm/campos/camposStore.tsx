@@ -31,7 +31,14 @@ export function CamposProvider({ children }: { children: ReactNode }) {
     ;(async () => {
       try {
         const data = await crmFetch<{ campos: CampoPersonalizado[] }>('/campos')
-        if (!cancelado) setCampos(data.campos)
+        if (!cancelado) {
+          setCampos(
+            (data.campos ?? []).map((c) => ({
+              ...c,
+              opcoes: Array.isArray(c.opcoes) ? c.opcoes : [],
+            })),
+          )
+        }
       } catch {
         /* noop */
       }

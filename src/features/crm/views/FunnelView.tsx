@@ -164,6 +164,7 @@ export function FunnelView() {
               <ColunaMenuButton
                 colunaId={ativo.col.id}
                 titulo={ativo.col.titulo}
+                cor={ativo.col.cor}
               />
             </div>
           </header>

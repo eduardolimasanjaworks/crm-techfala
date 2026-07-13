@@ -99,6 +99,20 @@ export function AbaDados({ contato }: Props) {
           onChange={(e) => set('anotacoes', e.target.value)}
         />
       </label>
+
+      <div className="campo-switch-row">
+        <label htmlFor="ct-automacao">Automação ativa</label>
+        <button
+          type="button"
+          role="switch"
+          id="ct-automacao"
+          aria-checked={contato.automacaoAtiva}
+          className={`campo-switch${contato.automacaoAtiva ? ' is-on' : ''}`}
+          onClick={() => set('automacaoAtiva', !contato.automacaoAtiva)}
+        >
+          <span className="campo-switch-knob" />
+        </button>
+      </div>
     </div>
   )
 }

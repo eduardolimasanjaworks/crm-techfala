@@ -76,6 +76,13 @@
   flex-shrink: 0;
 }
 
+.campos-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
 .campos-title {
   margin: 0;
   font-size: 18px;

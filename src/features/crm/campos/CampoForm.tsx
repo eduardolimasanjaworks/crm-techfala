@@ -1,6 +1,7 @@
 /**
  * Formulário “Novo Campo” dentro do sheet.
  * Exige nome; switch Ativo e tipo Texto por padrão.
+ * Tipo lista exige opções (uma por linha).
  */
 import { useState } from 'react'
 import { IconArrowLeft } from '@/shared/icons'
@@ -16,8 +17,18 @@ export function CampoForm({ onVoltar }: Props) {
   const [descricao, setDescricao] = useState('')
   const [ativo, setAtivo] = useState(true)
   const [tipo, setTipo] = useState<CampoTipo>('texto')
+  const [opcoesTexto, setOpcoesTexto] = useState('')
 
-  const valido = Boolean(nome.trim())
+  const opcoes =
+    tipo === 'lista'
+      ? opcoesTexto
+          .split('\n')
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : []
+
+  const valido =
+    Boolean(nome.trim()) && (tipo !== 'lista' || opcoes.length > 0)
 
   function salvar() {
     if (!valido) return
@@ -26,6 +37,7 @@ export function CampoForm({ onVoltar }: Props) {
       descricao: descricao.trim(),
       ativo,
       tipo,
+      opcoes,
     })
     onVoltar()
   }
@@ -92,6 +104,19 @@ export function CampoForm({ onVoltar }: Props) {
             ))}
           </select>
         </label>
+
+        {tipo === 'lista' ? (
+          <label className="field">
+            <span>Opções * (uma por linha)</span>
+            <textarea
+              className="input textarea"
+              rows={4}
+              placeholder={'Opção A\nOpção B\nOpção C'}
+              value={opcoesTexto}
+              onChange={(e) => setOpcoesTexto(e.target.value)}
+            />
+          </label>
+        ) : null}
       </div>
 
       <div className="campo-form-foot">

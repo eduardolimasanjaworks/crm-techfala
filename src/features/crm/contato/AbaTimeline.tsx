@@ -1,6 +1,5 @@
 /**
- * Timeline horizontal com filtros — fiel ao modelo do dump.
- * Trilho central, cards alternando acima/abaixo por dia.
+ * Timeline horizontal com filtros alinhados aos tipos reais.
  */
 import { useMemo, useState } from 'react'
 import type { Contato } from '@/shared/types/crm'
@@ -11,13 +10,13 @@ type Props = { contato: Contato }
 
 const FILTROS = [
   { id: 'todos', label: 'Todos' },
-  { id: 'lead', label: 'Contato' },
-  { id: 'bot', label: 'Flow' },
-  { id: 'evento', label: 'Calendário' },
-  { id: 'kanban', label: 'Neural Sales' },
+  { id: 'lead', label: 'Lead' },
   { id: 'tarefa', label: 'Tarefa' },
-  { id: 'nota', label: 'Multi-Chat' },
-  { id: 'interacao', label: 'Marketing' },
+  { id: 'evento', label: 'Evento' },
+  { id: 'nota', label: 'Nota' },
+  { id: 'interacao', label: 'Interação' },
+  { id: 'arquivo', label: 'Arquivo' },
+  { id: 'kanban', label: 'Kanban' },
 ] as const
 
 export function AbaTimeline({ contato }: Props) {
@@ -25,12 +24,6 @@ export function AbaTimeline({ contato }: Props) {
 
   const filtrados = useMemo(() => {
     if (filtro === 'todos') return contato.timeline
-    if (filtro === 'lead') {
-      return contato.timeline.filter((t) => t.tipo === 'lead' || t.tipo === 'interacao')
-    }
-    if (filtro === 'nota') {
-      return contato.timeline.filter((t) => t.tipo === 'nota')
-    }
     return contato.timeline.filter((t) => t.tipo === filtro)
   }, [contato.timeline, filtro])
 

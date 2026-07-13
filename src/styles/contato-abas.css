@@ -172,10 +172,24 @@
   padding: 12px;
   background: var(--card);
   min-width: 0;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.item-card-main {
+  min-width: 0;
+  flex: 1;
 }
 
 .item-card strong {
   font-size: 14px;
+}
+
+.item-card strong.is-done {
+  text-decoration: line-through;
+  color: var(--muted-foreground);
 }
 
 .item-card p {
@@ -183,6 +197,19 @@
   font-size: 13px;
   color: var(--muted-foreground);
   word-break: break-word;
+}
+
+.item-acoes {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.field-hint {
+  font-style: normal;
+  font-weight: 400;
+  color: var(--muted-foreground);
+  font-size: 12px;
 }
 
 .meta-link {
