@@ -4,7 +4,7 @@
  */
 import { useState } from 'react'
 import type { ViewMode } from '@/shared/types/views'
-import { CrmProvider } from './store/crmStore'
+import { CrmProvider, useCrm } from './store/crmStore'
 import { CrmToolbar } from './components/CrmToolbar'
 import { KanbanBoard } from './components/KanbanBoard'
 import { ContatoPanel } from './contato/ContatoPanel'
@@ -23,31 +23,46 @@ function CrmBoard({ viewMode }: { viewMode: ViewMode }) {
   return <KanbanBoard />
 }
 
-export function CrmPage() {
+function CrmShell() {
+  const { carregando, erro } = useCrm()
   const [viewMode, setViewMode] = useState<ViewMode>('kanban')
   const [tarefasAberto, setTarefasAberto] = useState(false)
   const [camposAberto, setCamposAberto] = useState(false)
 
   return (
+    <div className="crm-page">
+      {erro ? (
+        <div className="crm-banner crm-banner-erro" role="alert">
+          {erro}
+        </div>
+      ) : null}
+      {carregando ? (
+        <div className="crm-banner">Carregando CRM…</div>
+      ) : null}
+      <CrmToolbar
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        onAbrirTarefas={() => setTarefasAberto(true)}
+        onAbrirCampos={() => setCamposAberto(true)}
+      />
+      <CrmBoard viewMode={viewMode} />
+      <ContatoPanel />
+      {tarefasAberto ? (
+        <TarefasPanel onClose={() => setTarefasAberto(false)} />
+      ) : null}
+      {camposAberto ? (
+        <CamposPanel onClose={() => setCamposAberto(false)} />
+      ) : null}
+    </div>
+  )
+}
+
+export function CrmPage() {
+  return (
     <CrmProvider>
       <TarefasProvider>
         <CamposProvider>
-          <div className="crm-page">
-            <CrmToolbar
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
-              onAbrirTarefas={() => setTarefasAberto(true)}
-              onAbrirCampos={() => setCamposAberto(true)}
-            />
-            <CrmBoard viewMode={viewMode} />
-            <ContatoPanel />
-            {tarefasAberto ? (
-              <TarefasPanel onClose={() => setTarefasAberto(false)} />
-            ) : null}
-            {camposAberto ? (
-              <CamposPanel onClose={() => setCamposAberto(false)} />
-            ) : null}
-          </div>
+          <CrmShell />
         </CamposProvider>
       </TarefasProvider>
     </CrmProvider>

@@ -1,6 +1,6 @@
 /**
  * Store do catálogo de Campos Personalizados (toolbar → Campos).
- * CRUD + localStorage; UI aberta/fechada fica no CrmPage.
+ * CRUD via `/api/crm/campos`.
  */
 import {
   createContext,
@@ -11,8 +11,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { loadJson, saveJson } from '@/shared/lib/storage'
-import { CAMPOS_PADRAO, CAMPOS_STORAGE_KEY } from './defaultCampos'
+import { crmFetch } from '@/shared/lib/crmApi'
 import type { CampoPersonalizado, NovoCampoInput } from './types'
 
 type Ctx = {
@@ -24,21 +23,36 @@ type Ctx = {
 
 const CamposContext = createContext<Ctx | null>(null)
 
-function uid() {
-  return `cf-${crypto.randomUUID().slice(0, 8)}`
-}
-
 export function CamposProvider({ children }: { children: ReactNode }) {
-  const [campos, setCampos] = useState<CampoPersonalizado[]>(() =>
-    loadJson(CAMPOS_STORAGE_KEY, CAMPOS_PADRAO),
-  )
+  const [campos, setCampos] = useState<CampoPersonalizado[]>([])
 
   useEffect(() => {
-    saveJson(CAMPOS_STORAGE_KEY, campos)
-  }, [campos])
+    let cancelado = false
+    ;(async () => {
+      try {
+        const data = await crmFetch<{ campos: CampoPersonalizado[] }>('/campos')
+        if (!cancelado) setCampos(data.campos)
+      } catch {
+        /* noop */
+      }
+    })()
+    return () => {
+      cancelado = true
+    }
+  }, [])
 
   const criar = useCallback((input: NovoCampoInput) => {
-    setCampos((prev) => [{ id: uid(), ...input }, ...prev])
+    void (async () => {
+      try {
+        const { campo } = await crmFetch<{ campo: CampoPersonalizado }>(
+          '/campos',
+          { method: 'POST', body: JSON.stringify(input) },
+        )
+        setCampos((prev) => [campo, ...prev])
+      } catch {
+        /* noop */
+      }
+    })()
   }, [])
 
   const atualizar = useCallback(
@@ -46,12 +60,30 @@ export function CamposProvider({ children }: { children: ReactNode }) {
       setCampos((prev) =>
         prev.map((c) => (c.id === id ? { ...c, ...patch } : c)),
       )
+      void (async () => {
+        try {
+          const { campo } = await crmFetch<{ campo: CampoPersonalizado }>(
+            `/campos/${id}`,
+            { method: 'PATCH', body: JSON.stringify(patch) },
+          )
+          setCampos((prev) => prev.map((c) => (c.id === id ? campo : c)))
+        } catch {
+          /* noop */
+        }
+      })()
     },
     [],
   )
 
   const remover = useCallback((id: string) => {
     setCampos((prev) => prev.filter((c) => c.id !== id))
+    void (async () => {
+      try {
+        await crmFetch(`/campos/${id}`, { method: 'DELETE' })
+      } catch {
+        /* noop */
+      }
+    })()
   }, [])
 
   const value = useMemo(

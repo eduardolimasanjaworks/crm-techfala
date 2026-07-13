@@ -1,6 +1,6 @@
 /**
  * Store das tarefas do painel lateral (toolbar → Tarefas).
- * CRUD + persistência; estado de UI (aberto/view) fica no CrmPage.
+ * CRUD via `/api/crm/tarefas`; estado de UI fica no CrmPage.
  */
 import {
   createContext,
@@ -11,8 +11,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { loadJson, saveJson } from '@/shared/lib/storage'
-import { TAREFAS_PADRAO, TAREFAS_STORAGE_KEY } from './defaultTarefas'
+import { crmFetch } from '@/shared/lib/crmApi'
 import type { NovaTarefaInput, Tarefa } from './types'
 
 type Ctx = {
@@ -25,37 +24,84 @@ type Ctx = {
 
 const TarefasContext = createContext<Ctx | null>(null)
 
-function uid() {
-  return `tar-${crypto.randomUUID().slice(0, 8)}`
-}
-
 export function TarefasProvider({ children }: { children: ReactNode }) {
-  const [tarefas, setTarefas] = useState<Tarefa[]>(() =>
-    loadJson(TAREFAS_STORAGE_KEY, TAREFAS_PADRAO),
-  )
+  const [tarefas, setTarefas] = useState<Tarefa[]>([])
 
   useEffect(() => {
-    saveJson(TAREFAS_STORAGE_KEY, tarefas)
-  }, [tarefas])
+    let cancelado = false
+    ;(async () => {
+      try {
+        const data = await crmFetch<{ tarefas: Tarefa[] }>('/tarefas')
+        if (!cancelado) setTarefas(data.tarefas)
+      } catch {
+        /* board já mostra erro de auth; lista fica vazia */
+      }
+    })()
+    return () => {
+      cancelado = true
+    }
+  }, [])
 
   const criar = useCallback((input: NovaTarefaInput) => {
-    setTarefas((prev) => [{ id: uid(), ...input }, ...prev])
+    void (async () => {
+      try {
+        const { tarefa } = await crmFetch<{ tarefa: Tarefa }>('/tarefas', {
+          method: 'POST',
+          body: JSON.stringify(input),
+        })
+        setTarefas((prev) => [tarefa, ...prev])
+      } catch {
+        /* noop */
+      }
+    })()
   }, [])
 
   const concluir = useCallback((id: string) => {
     setTarefas((prev) =>
       prev.map((t) => (t.id === id ? { ...t, status: 'concluida' } : t)),
     )
+    void (async () => {
+      try {
+        const { tarefa } = await crmFetch<{ tarefa: Tarefa }>(
+          `/tarefas/${id}`,
+          {
+            method: 'PATCH',
+            body: JSON.stringify({ status: 'concluida' }),
+          },
+        )
+        setTarefas((prev) => prev.map((t) => (t.id === id ? tarefa : t)))
+      } catch {
+        /* noop */
+      }
+    })()
   }, [])
 
   const remover = useCallback((id: string) => {
     setTarefas((prev) => prev.filter((t) => t.id !== id))
+    void (async () => {
+      try {
+        await crmFetch(`/tarefas/${id}`, { method: 'DELETE' })
+      } catch {
+        /* noop */
+      }
+    })()
   }, [])
 
   const atualizar = useCallback((id: string, patch: Partial<Tarefa>) => {
     setTarefas((prev) =>
       prev.map((t) => (t.id === id ? { ...t, ...patch } : t)),
     )
+    void (async () => {
+      try {
+        const { tarefa } = await crmFetch<{ tarefa: Tarefa }>(
+          `/tarefas/${id}`,
+          { method: 'PATCH', body: JSON.stringify(patch) },
+        )
+        setTarefas((prev) => prev.map((t) => (t.id === id ? tarefa : t)))
+      } catch {
+        /* noop */
+      }
+    })()
   }, [])
 
   const value = useMemo(

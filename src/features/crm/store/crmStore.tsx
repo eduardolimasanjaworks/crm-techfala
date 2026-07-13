@@ -1,6 +1,6 @@
 /**
  * Store React do CRM: Kanban + painel do contato.
- * Persiste colunas/contatos; contatoAbertoId só em memória.
+ * Persiste no Postgres via `/api/crm/*` (cookie do painel).
  */
 import {
   createContext,
@@ -11,26 +11,14 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { loadJson, saveJson } from '@/shared/lib/storage'
-import {
-  contatoVazio,
-  type Coluna,
-  type Contato,
-  type CrmState,
-} from '@/shared/types/crm'
-import {
-  COLUNAS_PADRAO,
-  CONTATOS_PADRAO,
-  CRM_STORAGE_KEY,
-  ZOOM_MAX,
-  ZOOM_MIN,
-  ZOOM_STEP,
-} from './defaultData'
+import { crmFetch } from '@/shared/lib/crmApi'
+import type { Coluna, Contato, CrmState } from '@/shared/types/crm'
+import { ZOOM_MAX, ZOOM_MIN, ZOOM_STEP } from './defaultData'
 import { normalizarContatos } from './normalizarContatos'
 
-type Persisted = Pick<CrmState, 'colunas' | 'contatos'>
-
 type CrmContextValue = CrmState & {
+  carregando: boolean
+  erro: string | null
   colunasOrdenadas: Coluna[]
   contatosFiltrados: Contato[]
   contatoAberto: Contato | null
@@ -51,27 +39,46 @@ type CrmContextValue = CrmState & {
 
 const CrmContext = createContext<CrmContextValue | null>(null)
 
-function uid(prefix: string) {
-  return `${prefix}-${crypto.randomUUID().slice(0, 8)}`
+function upsertContato(lista: Contato[], contato: Contato): Contato[] {
+  const i = lista.findIndex((c) => c.id === contato.id)
+  if (i < 0) return [...lista, contato]
+  const next = [...lista]
+  next[i] = contato
+  return next
 }
 
 export function CrmProvider({ children }: { children: ReactNode }) {
-  const saved = loadJson<Persisted>(CRM_STORAGE_KEY, {
-    colunas: COLUNAS_PADRAO,
-    contatos: CONTATOS_PADRAO,
-  })
-
-  const [colunas, setColunas] = useState<Coluna[]>(saved.colunas)
-  const [contatos, setContatos] = useState<Contato[]>(() =>
-    normalizarContatos(saved.contatos),
-  )
+  const [colunas, setColunas] = useState<Coluna[]>([])
+  const [contatos, setContatos] = useState<Contato[]>([])
   const [busca, setBusca] = useState('')
   const [zoom, setZoom] = useState(1)
   const [contatoAbertoId, setContatoAbertoId] = useState<string | null>(null)
+  const [carregando, setCarregando] = useState(true)
+  const [erro, setErro] = useState<string | null>(null)
 
   useEffect(() => {
-    saveJson(CRM_STORAGE_KEY, { colunas, contatos })
-  }, [colunas, contatos])
+    let cancelado = false
+    ;(async () => {
+      try {
+        const data = await crmFetch<{ colunas: Coluna[]; contatos: Contato[] }>(
+          '/board',
+        )
+        if (cancelado) return
+        setColunas(data.colunas)
+        setContatos(normalizarContatos(data.contatos))
+        setErro(null)
+      } catch (e) {
+        if (!cancelado) {
+          setErro(e instanceof Error ? e.message : 'Falha ao carregar CRM')
+        }
+      } finally {
+        if (!cancelado) setCarregando(false)
+      }
+    })()
+    return () => {
+      cancelado = true
+    }
+  }, [])
 
   const colunasOrdenadas = useMemo(
     () => [...colunas].sort((a, b) => a.ordem - b.ordem),
@@ -103,41 +110,53 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const adicionarColuna = useCallback((titulo = 'Nova Coluna') => {
-    setColunas((prev) => {
-      const ordem = prev.length
-      const cores = [
-        'rgb(59, 130, 246)',
-        'rgb(139, 92, 246)',
-        'rgb(16, 185, 129)',
-        'rgb(245, 158, 11)',
-        'rgb(239, 68, 68)',
-      ]
-      return [
-        ...prev,
-        {
-          id: uid('col'),
-          titulo,
-          cor: cores[ordem % cores.length],
-          ordem,
-        },
-      ]
-    })
+    void (async () => {
+      try {
+        const { coluna } = await crmFetch<{ coluna: Coluna }>('/colunas', {
+          method: 'POST',
+          body: JSON.stringify({ titulo }),
+        })
+        setColunas((prev) => [...prev, coluna])
+      } catch (e) {
+        setErro(e instanceof Error ? e.message : 'Erro ao criar coluna')
+      }
+    })()
   }, [])
 
   const adicionarContato = useCallback((colunaId: string, nome: string) => {
     const limpo = nome.trim()
     if (!limpo) return
-    const id = uid('ct')
-    const criadoEm = new Date().toISOString()
-    const novo = contatoVazio({ id, nome: limpo, colunaId, criadoEm })
-    setContatos((prev) => [...prev, novo])
-    setContatoAbertoId(id)
+    void (async () => {
+      try {
+        const { contato } = await crmFetch<{ contato: Contato }>('/contatos', {
+          method: 'POST',
+          body: JSON.stringify({ colunaId, nome: limpo }),
+        })
+        const normalizado = normalizarContatos([contato])[0]
+        setContatos((prev) => [...prev, normalizado])
+        setContatoAbertoId(normalizado.id)
+      } catch (e) {
+        setErro(e instanceof Error ? e.message : 'Erro ao criar contato')
+      }
+    })()
   }, [])
 
   const atualizarContato = useCallback((id: string, patch: Partial<Contato>) => {
     setContatos((prev) =>
       prev.map((c) => (c.id === id ? { ...c, ...patch } : c)),
     )
+    void (async () => {
+      try {
+        const { contato } = await crmFetch<{ contato: Contato }>(
+          `/contatos/${id}`,
+          { method: 'PATCH', body: JSON.stringify(patch) },
+        )
+        const normalizado = normalizarContatos([contato])[0]
+        setContatos((prev) => upsertContato(prev, normalizado))
+      } catch (e) {
+        setErro(e instanceof Error ? e.message : 'Erro ao atualizar contato')
+      }
+    })()
   }, [])
 
   const abrirContato = useCallback((id: string) => setContatoAbertoId(id), [])
@@ -146,27 +165,37 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   const removerContato = useCallback((id: string) => {
     setContatos((prev) => prev.filter((c) => c.id !== id))
     setContatoAbertoId((aberto) => (aberto === id ? null : aberto))
+    void (async () => {
+      try {
+        await crmFetch(`/contatos/${id}`, { method: 'DELETE' })
+      } catch (e) {
+        setErro(e instanceof Error ? e.message : 'Erro ao excluir contato')
+      }
+    })()
   }, [])
 
   const moverContato = useCallback(
     (contatoId: string, colunaDestinoId: string) => {
       setContatos((prev) =>
-        prev.map((c) => {
-          if (c.id !== contatoId) return c
-          const tl = {
-            id: uid('tl'),
-            tipo: 'kanban',
-            titulo: 'Movimentação (Kanban)',
-            detalhe: `Contato movido para outra coluna`,
-            em: new Date().toISOString(),
-          }
-          return {
-            ...c,
-            colunaId: colunaDestinoId,
-            timeline: [tl, ...c.timeline],
-          }
-        }),
+        prev.map((c) =>
+          c.id === contatoId ? { ...c, colunaId: colunaDestinoId } : c,
+        ),
       )
+      void (async () => {
+        try {
+          const { contato } = await crmFetch<{ contato: Contato }>(
+            `/contatos/${contatoId}/mover`,
+            {
+              method: 'POST',
+              body: JSON.stringify({ colunaId: colunaDestinoId }),
+            },
+          )
+          const normalizado = normalizarContatos([contato])[0]
+          setContatos((prev) => upsertContato(prev, normalizado))
+        } catch (e) {
+          setErro(e instanceof Error ? e.message : 'Erro ao mover contato')
+        }
+      })()
     },
     [],
   )
@@ -183,16 +212,41 @@ export function CrmProvider({ children }: { children: ReactNode }) {
         sorted.splice(to, 0, item)
         return sorted.map((c, i) => ({ ...c, ordem: i }))
       })
+      void (async () => {
+        try {
+          const { colunas: next } = await crmFetch<{ colunas: Coluna[] }>(
+            '/colunas/reordenar',
+            {
+              method: 'POST',
+              body: JSON.stringify({ origemId, destinoId }),
+            },
+          )
+          setColunas(next)
+        } catch (e) {
+          setErro(e instanceof Error ? e.message : 'Erro ao reordenar colunas')
+        }
+      })()
     },
     [],
   )
 
   const renomearColuna = useCallback((id: string, titulo: string) => {
+    const limpo = titulo.trim()
+    if (!limpo) return
     setColunas((prev) =>
-      prev.map((c) =>
-        c.id === id ? { ...c, titulo: titulo.trim() || c.titulo } : c,
-      ),
+      prev.map((c) => (c.id === id ? { ...c, titulo: limpo } : c)),
     )
+    void (async () => {
+      try {
+        const { coluna } = await crmFetch<{ coluna: Coluna }>(
+          `/colunas/${id}`,
+          { method: 'PATCH', body: JSON.stringify({ titulo: limpo }) },
+        )
+        setColunas((prev) => prev.map((c) => (c.id === id ? coluna : c)))
+      } catch (e) {
+        setErro(e instanceof Error ? e.message : 'Erro ao renomear coluna')
+      }
+    })()
   }, [])
 
   const removerColuna = useCallback((id: string) => {
@@ -200,6 +254,13 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       prev.filter((c) => c.id !== id).map((c, i) => ({ ...c, ordem: i })),
     )
     setContatos((prev) => prev.filter((c) => c.colunaId !== id))
+    void (async () => {
+      try {
+        await crmFetch(`/colunas/${id}`, { method: 'DELETE' })
+      } catch (e) {
+        setErro(e instanceof Error ? e.message : 'Erro ao excluir coluna')
+      }
+    })()
   }, [])
 
   const value: CrmContextValue = {
@@ -208,6 +269,8 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     busca,
     zoom,
     contatoAbertoId,
+    carregando,
+    erro,
     colunasOrdenadas,
     contatosFiltrados,
     contatoAberto,
