@@ -3,7 +3,7 @@
  * Aberto pelo botão Campos da toolbar; lista ou formulário.
  */
 import { useState } from 'react'
-import { IconPlay, IconPlus, IconX } from '@/shared/icons'
+import { IconPlus, IconX } from '@/shared/icons'
 import { CampoForm } from './CampoForm'
 import { CamposLista } from './CamposLista'
 import type { CamposView } from './types'
@@ -35,13 +35,6 @@ export function CamposPanel({ onClose }: Props) {
             <header className="campos-header">
               <h2 id="custom-fields-modal-title" className="campos-title">
                 Campos Personalizados
-                <button
-                  type="button"
-                  className="play-tip"
-                  aria-label="Vídeo tutorial: Campos Personalizados"
-                >
-                  <IconPlay />
-                </button>
               </h2>
               <button
                 type="button"

@@ -15,7 +15,14 @@ export async function crmFetch<T>(
   init?: RequestInit,
 ): Promise<T> {
   const headers = new Headers(init?.headers)
-  if (init?.body && !headers.has('Content-Type')) {
+  const body = init?.body
+  const isJsonBody =
+    typeof body === 'string' ||
+    (body != null &&
+      !(body instanceof Blob) &&
+      !(body instanceof ArrayBuffer) &&
+      !(ArrayBuffer.isView(body)))
+  if (body && isJsonBody && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json')
   }
   const res = await fetch(`/api/crm${path}`, {
@@ -31,4 +38,23 @@ export async function crmFetch<T>(
     throw new CrmApiError(res.status, data.erro || `HTTP ${res.status}`)
   }
   return data
+}
+
+/** Upload binário de arquivo de contato. */
+export async function crmUploadArquivo<T>(
+  contatoId: string,
+  file: File,
+): Promise<T> {
+  return crmFetch<T>(
+    `/contatos/${encodeURIComponent(contatoId)}/arquivos`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/octet-stream',
+        'X-Filename': encodeURIComponent(file.name),
+        'X-Mime': file.type || 'application/octet-stream',
+      },
+      body: file,
+    },
+  )
 }

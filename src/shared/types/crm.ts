@@ -7,6 +7,9 @@ export type ContatoArquivo = {
   id: string
   nome: string
   criadoEm: string
+  mime?: string
+  tamanho?: number
+  url?: string
 }
 
 export type ContatoTarefa = {
@@ -55,11 +58,6 @@ export type TimelineItem = {
   em: string
 }
 
-export type MultichatStatus =
-  | 'em_atendimento'
-  | 'aguardando'
-  | 'concluido'
-
 export type Contato = {
   id: string
   nome: string
@@ -74,8 +72,6 @@ export type Contato = {
   tags: string[]
   arquivos: ContatoArquivo[]
   automacaoAtiva: boolean
-  multichatStatus: MultichatStatus
-  responsavelMultichat: string
   tarefas: ContatoTarefa[]
   notas: ContatoNota[]
   eventos: ContatoEvento[]
@@ -116,8 +112,6 @@ export function contatoVazio(
     tags: [],
     arquivos: [],
     automacaoAtiva: true,
-    multichatStatus: 'aguardando',
-    responsavelMultichat: '',
     tarefas: [],
     notas: [],
     eventos: [],

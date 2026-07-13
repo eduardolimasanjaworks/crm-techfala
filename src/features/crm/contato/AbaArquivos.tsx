@@ -1,42 +1,46 @@
 /**
- * Aba Arquivos — lista e “upload” local (só metadados no browser).
+ * Aba Arquivos — upload real para o servidor + download/exclusão.
  */
+import { useState } from 'react'
 import type { Contato } from '@/shared/types/crm'
 import { useCrm } from '../store/crmStore'
 
 type Props = { contato: Contato }
 
+function formatBytes(n?: number) {
+  if (!n || n <= 0) return ''
+  if (n < 1024) return `${n} B`
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`
+  return `${(n / (1024 * 1024)).toFixed(1)} MB`
+}
+
 export function AbaArquivos({ contato }: Props) {
-  const { atualizarContato } = useCrm()
+  const { uploadArquivo, removerArquivo } = useCrm()
+  const [enviando, setEnviando] = useState(false)
 
-  function onFile(files: FileList | null) {
+  async function onFile(files: FileList | null) {
     if (!files?.length) return
-    const novos = Array.from(files).map((f) => ({
-      id: `arq-${crypto.randomUUID().slice(0, 8)}`,
-      nome: f.name,
-      criadoEm: new Date().toISOString(),
-    }))
-    atualizarContato(contato.id, {
-      arquivos: [...novos, ...contato.arquivos],
-    })
-  }
-
-  function remover(id: string) {
-    atualizarContato(contato.id, {
-      arquivos: contato.arquivos.filter((a) => a.id !== id),
-    })
+    setEnviando(true)
+    try {
+      for (const f of Array.from(files)) {
+        uploadArquivo(contato.id, f)
+      }
+    } finally {
+      setEnviando(false)
+    }
   }
 
   return (
     <div className="aba-form">
-      <label className="upload-btn btn btn-outline">
-        Enviar Arquivo(s)
+      <label className={`upload-btn btn btn-outline${enviando ? ' is-disabled' : ''}`}>
+        {enviando ? 'Enviando…' : 'Enviar Arquivo(s)'}
         <input
           type="file"
           multiple
           hidden
+          disabled={enviando}
           onChange={(e) => {
-            onFile(e.target.files)
+            void onFile(e.target.files)
             e.target.value = ''
           }}
         />
@@ -50,8 +54,23 @@ export function AbaArquivos({ contato }: Props) {
         <ul className="file-list">
           {contato.arquivos.map((a) => (
             <li key={a.id}>
-              <span>{a.nome}</span>
-              <button type="button" className="btn btn-ghost sm" onClick={() => remover(a.id)}>
+              <div className="file-meta">
+                {a.url ? (
+                  <a href={a.url} target="_blank" rel="noreferrer">
+                    {a.nome}
+                  </a>
+                ) : (
+                  <span>{a.nome}</span>
+                )}
+                {a.tamanho ? (
+                  <small>{formatBytes(a.tamanho)}</small>
+                ) : null}
+              </div>
+              <button
+                type="button"
+                className="btn btn-ghost sm"
+                onClick={() => removerArquivo(contato.id, a.id)}
+              >
                 Excluir
               </button>
             </li>

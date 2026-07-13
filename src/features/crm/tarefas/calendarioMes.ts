@@ -1,6 +1,5 @@
 /**
- * Monta a grade do calendário mensal (Dom–Sáb).
- * Inclui dias do mês anterior/próximo para preencher as semanas.
+ * Helpers de calendário (mês / semana / dia) — Dom–Sáb.
  */
 
 export type DiaCalendario = {
@@ -11,22 +10,43 @@ export type DiaCalendario = {
   hoje: boolean
 }
 
-function isoLocal(y: number, m0: number, d: number): string {
+export function isoLocal(y: number, m0: number, d: number): string {
   const mm = String(m0 + 1).padStart(2, '0')
   const dd = String(d).padStart(2, '0')
   return `${y}-${mm}-${dd}`
 }
 
+export function dataDeIso(iso: string): Date {
+  const [y, m, d] = iso.split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+
+export function isoDeData(d: Date): string {
+  return isoLocal(d.getFullYear(), d.getMonth(), d.getDate())
+}
+
+export function addDias(d: Date, n: number): Date {
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate())
+  x.setDate(x.getDate() + n)
+  return x
+}
+
+/** Domingo da semana que contém `ref`. */
+export function inicioSemana(ref: Date): Date {
+  const d = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate())
+  d.setDate(d.getDate() - d.getDay())
+  return d
+}
+
 export function montarMes(ano: number, mes0: number, hoje = new Date()): DiaCalendario[] {
   const primeiro = new Date(ano, mes0, 1)
-  const inicioSemana = primeiro.getDay()
+  const inicio = primeiro.getDay()
   const diasNoMes = new Date(ano, mes0 + 1, 0).getDate()
   const diasMesAnt = new Date(ano, mes0, 0).getDate()
-
-  const hojeIso = isoLocal(hoje.getFullYear(), hoje.getMonth(), hoje.getDate())
+  const hojeIso = isoDeData(hoje)
   const cells: DiaCalendario[] = []
 
-  for (let i = inicioSemana - 1; i >= 0; i--) {
+  for (let i = inicio - 1; i >= 0; i--) {
     const d = diasMesAnt - i
     const y = mes0 === 0 ? ano - 1 : ano
     const m = mes0 === 0 ? 11 : mes0 - 1
@@ -52,9 +72,44 @@ export function montarMes(ano: number, mes0: number, hoje = new Date()): DiaCale
   return cells
 }
 
+export function montarSemana(ref: Date, hoje = new Date()): DiaCalendario[] {
+  const ini = inicioSemana(ref)
+  const hojeIso = isoDeData(hoje)
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = addDias(ini, i)
+    const iso = isoDeData(d)
+    return {
+      key: iso,
+      dia: d.getDate(),
+      iso,
+      foraDoMes: false,
+      hoje: iso === hojeIso,
+    }
+  })
+}
+
 export function rotuloMesAno(ano: number, mes0: number): string {
-  const d = new Date(ano, mes0, 1)
-  return d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+  return new Date(ano, mes0, 1).toLocaleDateString('pt-BR', {
+    month: 'long',
+    year: 'numeric',
+  })
+}
+
+export function rotuloSemana(ref: Date): string {
+  const ini = inicioSemana(ref)
+  const fim = addDias(ini, 6)
+  const fmt = (d: Date) =>
+    d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
+  return `${fmt(ini)} – ${fmt(fim)} ${fim.getFullYear()}`
+}
+
+export function rotuloDia(ref: Date): string {
+  return ref.toLocaleDateString('pt-BR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
 }
 
 export const DIAS_SEMANA = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']

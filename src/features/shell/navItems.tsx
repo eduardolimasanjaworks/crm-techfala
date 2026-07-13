@@ -1,13 +1,11 @@
 /**
- * Itens da sidebar esquerda do TechFala.
- * Labels só no tooltip — no dump ficam ocultos.
+ * Itens da sidebar esquerda do TechFala (legado; app embutido não usa mais).
  */
 import type { ReactNode } from 'react'
-import { NavAssistente, NavCrm, NavMultiChat, NavSimple } from '@/shared/navIcons'
+import { NavAssistente, NavCrm, NavSimple } from '@/shared/navIcons'
 
 export type RotaId =
   | 'assistente'
-  | 'multichat'
   | 'campanhas'
   | 'crm'
   | 'marketing'
@@ -25,7 +23,6 @@ export type NavItem = {
 
 export const NAV_ITEMS: NavItem[] = [
   { id: 'assistente', label: 'Assistente Virtual', icon: <NavAssistente /> },
-  { id: 'multichat', label: 'Multi Chat', icon: <NavMultiChat /> },
   {
     id: 'campanhas',
     label: 'Campanhas',

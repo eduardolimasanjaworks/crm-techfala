@@ -175,25 +175,6 @@
   height: 16px;
 }
 
-.play-tip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  margin-left: 6px;
-  border: none;
-  border-radius: 9999px;
-  background: color-mix(in srgb, var(--primary) 10%, transparent);
-  color: var(--primary);
-  padding: 0;
-}
-
-.play-tip svg {
-  width: 12px;
-  height: 12px;
-}
-
 .btn-label {
   display: none;
 }
@@ -205,10 +186,6 @@
 }
 
 @media (max-width: 768px) {
-  .play-tip {
-    display: none;
-  }
-
   .toolbar-right {
     margin-left: 0;
     width: 100%;

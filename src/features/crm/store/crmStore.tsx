@@ -11,8 +11,8 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { crmFetch } from '@/shared/lib/crmApi'
-import type { Coluna, Contato, CrmState } from '@/shared/types/crm'
+import { crmFetch, crmUploadArquivo } from '@/shared/lib/crmApi'
+import type { Coluna, Contato, ContatoArquivo, CrmState } from '@/shared/types/crm'
 import { ZOOM_MAX, ZOOM_MIN, ZOOM_STEP } from './defaultData'
 import { normalizarContatos } from './normalizarContatos'
 
@@ -28,6 +28,8 @@ type CrmContextValue = CrmState & {
   adicionarColuna: (titulo?: string) => void
   adicionarContato: (colunaId: string, nome: string) => void
   atualizarContato: (id: string, patch: Partial<Contato>) => void
+  uploadArquivo: (contatoId: string, file: File) => void
+  removerArquivo: (contatoId: string, arquivoId: string) => void
   abrirContato: (id: string) => void
   fecharContato: () => void
   removerContato: (id: string) => void
@@ -159,6 +161,46 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     })()
   }, [])
 
+  const uploadArquivo = useCallback((contatoId: string, file: File) => {
+    void (async () => {
+      try {
+        const { arquivo } = await crmUploadArquivo<{ arquivo: ContatoArquivo }>(
+          contatoId,
+          file,
+        )
+        setContatos((prev) =>
+          prev.map((c) =>
+            c.id === contatoId
+              ? { ...c, arquivos: [arquivo, ...c.arquivos] }
+              : c,
+          ),
+        )
+      } catch (e) {
+        setErro(e instanceof Error ? e.message : 'Erro ao enviar arquivo')
+      }
+    })()
+  }, [])
+
+  const removerArquivo = useCallback((contatoId: string, arquivoId: string) => {
+    setContatos((prev) =>
+      prev.map((c) =>
+        c.id === contatoId
+          ? { ...c, arquivos: c.arquivos.filter((a) => a.id !== arquivoId) }
+          : c,
+      ),
+    )
+    void (async () => {
+      try {
+        await crmFetch(
+          `/contatos/${contatoId}/arquivos/${arquivoId}`,
+          { method: 'DELETE' },
+        )
+      } catch (e) {
+        setErro(e instanceof Error ? e.message : 'Erro ao excluir arquivo')
+      }
+    })()
+  }, [])
+
   const abrirContato = useCallback((id: string) => setContatoAbertoId(id), [])
   const fecharContato = useCallback(() => setContatoAbertoId(null), [])
 
@@ -280,6 +322,8 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     adicionarColuna,
     adicionarContato,
     atualizarContato,
+    uploadArquivo,
+    removerArquivo,
     abrirContato,
     fecharContato,
     removerContato,

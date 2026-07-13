@@ -9,12 +9,10 @@ import {
   IconLayoutGrid,
   IconList,
   IconListChecks,
-  IconPlay,
   IconPlus,
   IconRows,
   IconSearch,
   IconSliders,
-  IconWorkflow,
   IconZoomIn,
   IconZoomOut,
 } from '@/shared/icons'
@@ -83,13 +81,6 @@ export function CrmToolbar({
             </button>
           ))}
         </div>
-        <button
-          type="button"
-          className="play-tip"
-          aria-label="Vídeo tutorial: Botão Views"
-        >
-          <IconPlay />
-        </button>
       </div>
 
       {viewMode === 'kanban' ? (
@@ -139,11 +130,6 @@ export function CrmToolbar({
         >
           <IconListChecks />
           <span className="btn-label">Tarefas</span>
-        </button>
-
-        <button type="button" className="btn btn-outline">
-          <IconWorkflow />
-          <span className="btn-label">NeuralFlow</span>
         </button>
 
         <button

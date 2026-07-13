@@ -7,7 +7,6 @@ import {
   IconArrowUpDown,
   IconCalendarDays,
   IconChevronDown,
-  IconPlay,
   IconPlus,
   IconX,
 } from '@/shared/icons'
@@ -45,13 +44,6 @@ export function TarefasPanel({ onClose }: Props) {
             <header className="tarefas-header">
               <h2 id="task-panel-title" className="tarefas-title">
                 Tarefas
-                <button
-                  type="button"
-                  className="play-tip"
-                  aria-label="Vídeo tutorial: Modal Tarefas"
-                >
-                  <IconPlay />
-                </button>
               </h2>
               <div className="tarefas-header-actions">
                 <button
