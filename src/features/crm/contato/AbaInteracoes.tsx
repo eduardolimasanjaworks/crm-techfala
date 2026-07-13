@@ -3,7 +3,7 @@
  */
 import { useState } from 'react'
 import type { Contato, ContatoInteracao } from '@/shared/types/crm'
-import { useCadastros } from '../cadastros/cadastrosStore'
+import { useUsuarios } from '../usuarios/usuariosStore'
 import { useCrm } from '../store/crmStore'
 import { AbaCabecalho } from './AbaCabecalho'
 
@@ -19,7 +19,7 @@ const formVazio = {
 
 export function AbaInteracoes({ contato }: Props) {
   const { atualizarContato } = useCrm()
-  const { cadastros } = useCadastros()
+  const { usuarios } = useUsuarios()
   const [aberto, setAberto] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
   const [form, setForm] = useState(formVazio)
@@ -119,9 +119,9 @@ export function AbaInteracoes({ contato }: Props) {
                 onChange={(e) => setForm({ ...form, responsavel: e.target.value })}
               >
                 <option value="">Responsável *</option>
-                {cadastros.responsaveis.map((r) => (
-                  <option key={r} value={r}>
-                    {r}
+                {usuarios.map((u) => (
+                  <option key={u.id} value={u.nome}>
+                    {u.nome}
                   </option>
                 ))}
               </select>

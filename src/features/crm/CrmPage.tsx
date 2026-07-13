@@ -1,6 +1,6 @@
 /**
  * Página CRM: toolbar + visualização ativa + painéis laterais.
- * Alterna views; abre Contato, Tarefas e Campos Personalizados.
+ * Alterna views; abre Contato, Tags e Campos Personalizados.
  */
 import { useState } from 'react'
 import type { ViewMode } from '@/shared/types/views'
@@ -11,8 +11,9 @@ import { ContatoPanel } from './contato/ContatoPanel'
 import { CamposPanel } from './campos/CamposPanel'
 import { CamposProvider } from './campos/camposStore'
 import { CadastrosProvider } from './cadastros/cadastrosStore'
-import { TarefasPanel } from './tarefas/TarefasPanel'
-import { TarefasProvider } from './tarefas/tarefasStore'
+import { TagsPanel } from './tags/TagsPanel'
+import { TagsProvider } from './tags/tagsStore'
+import { UsuariosProvider } from './usuarios/usuariosStore'
 import { RowsView } from './views/RowsView'
 import { ListView } from './views/ListView'
 import { FunnelView } from './views/FunnelView'
@@ -27,7 +28,7 @@ function CrmBoard({ viewMode }: { viewMode: ViewMode }) {
 function CrmShell() {
   const { carregando, erro } = useCrm()
   const [viewMode, setViewMode] = useState<ViewMode>('kanban')
-  const [tarefasAberto, setTarefasAberto] = useState(false)
+  const [tagsAberto, setTagsAberto] = useState(false)
   const [camposAberto, setCamposAberto] = useState(false)
 
   return (
@@ -43,14 +44,12 @@ function CrmShell() {
       <CrmToolbar
         viewMode={viewMode}
         onViewModeChange={setViewMode}
-        onAbrirTarefas={() => setTarefasAberto(true)}
+        onAbrirTags={() => setTagsAberto(true)}
         onAbrirCampos={() => setCamposAberto(true)}
       />
       <CrmBoard viewMode={viewMode} />
       <ContatoPanel />
-      {tarefasAberto ? (
-        <TarefasPanel onClose={() => setTarefasAberto(false)} />
-      ) : null}
+      {tagsAberto ? <TagsPanel onClose={() => setTagsAberto(false)} /> : null}
       {camposAberto ? (
         <CamposPanel onClose={() => setCamposAberto(false)} />
       ) : null}
@@ -61,13 +60,15 @@ function CrmShell() {
 export function CrmPage() {
   return (
     <CrmProvider>
-      <TarefasProvider>
-        <CamposProvider>
-          <CadastrosProvider>
-            <CrmShell />
-          </CadastrosProvider>
-        </CamposProvider>
-      </TarefasProvider>
+      <UsuariosProvider>
+        <TagsProvider>
+          <CamposProvider>
+            <CadastrosProvider>
+              <CrmShell />
+            </CadastrosProvider>
+          </CamposProvider>
+        </TagsProvider>
+      </UsuariosProvider>
     </CrmProvider>
   )
 }

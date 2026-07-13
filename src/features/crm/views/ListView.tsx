@@ -11,6 +11,8 @@ import {
 } from '@/shared/icons'
 import { ColunaMenuButton } from '../components/ColunaMenuButton'
 import { ContactCard } from '../components/ContactCard'
+import { promptNovoContato } from '../components/promptNovoContato'
+import { useDropContato } from '../hooks/useDropContato'
 import { useCrm } from '../store/crmStore'
 import { PAGE_SIZE, hexToRgba, somaValores, formatBRL } from './viewUtils'
 
@@ -20,6 +22,7 @@ export function ListView() {
   const [visiveis, setVisiveis] = useState(PAGE_SIZE)
 
   const coluna = colunasOrdenadas[idx] ?? colunasOrdenadas[0]
+  const drop = useDropContato(coluna?.id ?? '')
 
   useEffect(() => {
     setVisiveis(PAGE_SIZE)
@@ -93,14 +96,16 @@ export function ListView() {
           <button
             type="button"
             className="btn btn-ghost"
-            onClick={() => {
-              const nome = window.prompt('Nome do contato')
-              if (nome?.trim()) adicionarContato(coluna.id, nome.trim())
-            }}
+            onClick={() => promptNovoContato(coluna.id, adicionarContato)}
           >
             <IconPlus /> Adicionar
           </button>
-          <ColunaMenuButton colunaId={coluna.id} titulo={coluna.titulo} cor={coluna.cor} />
+          <ColunaMenuButton
+            colunaId={coluna.id}
+            titulo={coluna.titulo}
+            cor={coluna.cor}
+            contatosCount={contatos.length}
+          />
         </div>
 
         <button
@@ -134,7 +139,12 @@ export function ListView() {
         ))}
       </div>
 
-      <div className="list-grid-wrap">
+      <div
+        className={`list-grid-wrap${drop.over ? ' is-over' : ''}`}
+        onDragOver={drop.onDragOver}
+        onDragLeave={drop.onDragLeave}
+        onDrop={drop.onDrop}
+      >
         <div className="list-grid">
           {slice.map((c) => (
             <ContactCard key={c.id} contato={c} />

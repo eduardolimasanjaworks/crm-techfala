@@ -3,7 +3,7 @@
  */
 import { useState } from 'react'
 import type { Contato, ContatoTarefa } from '@/shared/types/crm'
-import { useCadastros } from '../cadastros/cadastrosStore'
+import { useUsuarios } from '../usuarios/usuariosStore'
 import { useCrm } from '../store/crmStore'
 import { AbaCabecalho } from './AbaCabecalho'
 
@@ -25,7 +25,7 @@ function rotuloStatus(s: ContatoTarefa['status']) {
 
 export function AbaTarefas({ contato }: Props) {
   const { atualizarContato } = useCrm()
-  const { cadastros } = useCadastros()
+  const { usuarios } = useUsuarios()
   const [aberto, setAberto] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
   const [form, setForm] = useState(formVazio)
@@ -180,9 +180,9 @@ export function AbaTarefas({ contato }: Props) {
                 onChange={(e) => setForm({ ...form, responsavel: e.target.value })}
               >
                 <option value="">Selecionar responsável</option>
-                {cadastros.responsaveis.map((r) => (
-                  <option key={r} value={r}>
-                    {r}
+                {usuarios.map((u) => (
+                  <option key={u.id} value={u.nome}>
+                    {u.nome}
                   </option>
                 ))}
               </select>

@@ -1,5 +1,6 @@
 /**
- * Aba Dados: campos principais do contato (nome, telefone, etc.).
+ * Aba Dados: campos principais do contato (nome, telefone, etapa, etc.).
+ * Valida telefone obrigatório e permite mover etapa pelo select.
  */
 import type { Contato } from '@/shared/types/crm'
 import { useCrm } from '../store/crmStore'
@@ -7,7 +8,7 @@ import { useCrm } from '../store/crmStore'
 type Props = { contato: Contato }
 
 export function AbaDados({ contato }: Props) {
-  const { atualizarContato } = useCrm()
+  const { atualizarContato, colunasOrdenadas, moverContato } = useCrm()
 
   function set<K extends keyof Contato>(key: K, value: Contato[K]) {
     atualizarContato(contato.id, { [key]: value } as Partial<Contato>)
@@ -44,9 +45,31 @@ export function AbaDados({ contato }: Props) {
             className="input"
             placeholder="Digite o telefone"
             value={contato.telefone}
-            onChange={(e) => set('telefone', e.target.value)}
+            onChange={(e) => {
+              const v = e.target.value
+              if (!v.trim()) {
+                window.alert('Informe o telefone do contato.')
+                return
+              }
+              set('telefone', v)
+            }}
           />
         </div>
+      </label>
+
+      <label className="field">
+        <span>Etapa</span>
+        <select
+          className="input"
+          value={contato.colunaId}
+          onChange={(e) => moverContato(contato.id, e.target.value)}
+        >
+          {colunasOrdenadas.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.titulo}
+            </option>
+          ))}
+        </select>
       </label>
 
       <label className="field">
@@ -101,7 +124,7 @@ export function AbaDados({ contato }: Props) {
       </label>
 
       <div className="campo-switch-row">
-        <label htmlFor="ct-automacao">Automação ativa</label>
+        <label htmlFor="ct-automacao">Atendimento pela IA</label>
         <button
           type="button"
           role="switch"

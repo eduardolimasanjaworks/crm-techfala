@@ -12,7 +12,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { crmFetch, crmUploadArquivo } from '@/shared/lib/crmApi'
+import { CrmApiError, crmFetch, crmUploadArquivo } from '@/shared/lib/crmApi'
 import type { Coluna, Contato, ContatoArquivo, CrmState } from '@/shared/types/crm'
 import { ZOOM_MAX, ZOOM_MIN, ZOOM_STEP } from './defaultData'
 import { normalizarContatos } from './normalizarContatos'
@@ -33,6 +33,13 @@ const FILTRO_VAZIO: CrmFiltro = {
 
 const PATCH_DEBOUNCE_MS = 280
 
+export type NovoContatoInput = {
+  nome: string
+  telefone: string
+  ddi?: string
+  iaAtiva?: boolean
+}
+
 type CrmContextValue = CrmState & {
   carregando: boolean
   erro: string | null
@@ -46,7 +53,7 @@ type CrmContextValue = CrmState & {
   zoomIn: () => void
   zoomOut: () => void
   adicionarColuna: (titulo?: string) => void
-  adicionarContato: (colunaId: string, nome: string) => void
+  adicionarContato: (colunaId: string, dados: NovoContatoInput) => void
   atualizarContato: (id: string, patch: Partial<Contato>) => void
   uploadArquivo: (contatoId: string, file: File) => void
   removerArquivo: (contatoId: string, arquivoId: string) => void
@@ -57,7 +64,7 @@ type CrmContextValue = CrmState & {
   reordenarColunas: (origemId: string, destinoId: string) => void
   renomearColuna: (id: string, titulo: string) => void
   alterarCorColuna: (id: string, cor: string) => void
-  removerColuna: (id: string) => void
+  removerColuna: (id: string, opts?: { moverParaId?: string }) => void
   sincronizarChatwoot: () => Promise<void>
   syncChatwootEmAndamento: boolean
 }
@@ -108,30 +115,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   const patchTimers = useRef(new Map<string, number>())
   const patchSeq = useRef(new Map<string, number>())
 
-  const flushPatch = useCallback(async (id: string) => {
-    const body = pendingPatches.current.get(id)
-    pendingPatches.current.delete(id)
-    patchTimers.current.delete(id)
-    if (!body || Object.keys(body).length === 0) return
-
-    const seq = (patchSeq.current.get(id) ?? 0) + 1
-    patchSeq.current.set(id, seq)
-    try {
-      const { contato } = await crmFetch<{ contato: Contato }>(
-        `/contatos/${id}`,
-        { method: 'PATCH', body: JSON.stringify(body) },
-      )
-      if (patchSeq.current.get(id) !== seq) return
-      if (pendingPatches.current.has(id)) return
-      const normalizado = normalizarContatos([contato])[0]
-      setContatos((prev) => upsertContato(prev, normalizado))
-      setErro(null)
-    } catch (e) {
-      if (patchSeq.current.get(id) === seq) {
-        setErro(e instanceof Error ? e.message : 'Erro ao atualizar contato')
-      }
-    }
-  }, [])
+  const abrirContato = useCallback((id: string) => setContatoAbertoId(id), [])
 
   const recarregarBoard = useCallback(async () => {
     const data = await crmFetch<{ colunas: Coluna[]; contatos: Contato[] }>(
@@ -140,6 +124,48 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     setColunas(data.colunas)
     setContatos(normalizarContatos(data.contatos))
   }, [])
+
+  const flushPatch = useCallback(
+    async (id: string) => {
+      const body = pendingPatches.current.get(id)
+      pendingPatches.current.delete(id)
+      patchTimers.current.delete(id)
+      if (!body || Object.keys(body).length === 0) return
+
+      const seq = (patchSeq.current.get(id) ?? 0) + 1
+      patchSeq.current.set(id, seq)
+      try {
+        const { contato } = await crmFetch<{ contato: Contato }>(
+          `/contatos/${id}`,
+          { method: 'PATCH', body: JSON.stringify(body) },
+        )
+        if (patchSeq.current.get(id) !== seq) return
+        if (pendingPatches.current.has(id)) return
+        const normalizado = normalizarContatos([contato])[0]
+        setContatos((prev) => upsertContato(prev, normalizado))
+        setErro(null)
+      } catch (e) {
+        if (patchSeq.current.get(id) !== seq) return
+        if (
+          e instanceof CrmApiError &&
+          e.codigo === 'telefone_duplicado' &&
+          e.contatoExistenteId
+        ) {
+          if (
+            window.confirm(
+              'Já existe um contato com este telefone. Abrir o contato existente?',
+            )
+          ) {
+            abrirContato(e.contatoExistenteId)
+          }
+          await recarregarBoard()
+          return
+        }
+        setErro(e instanceof Error ? e.message : 'Erro ao atualizar contato')
+      }
+    },
+    [abrirContato, recarregarBoard],
+  )
 
   const sincronizarChatwoot = useCallback(async () => {
     if (syncChatwootEmAndamento) return
@@ -219,23 +245,48 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     })()
   }, [])
 
-  const adicionarContato = useCallback((colunaId: string, nome: string) => {
-    const limpo = nome.trim()
-    if (!limpo) return
-    void (async () => {
-      try {
-        const { contato } = await crmFetch<{ contato: Contato }>('/contatos', {
-          method: 'POST',
-          body: JSON.stringify({ colunaId, nome: limpo }),
-        })
-        const normalizado = normalizarContatos([contato])[0]
-        setContatos((prev) => [...prev, normalizado])
-        setContatoAbertoId(normalizado.id)
-      } catch (e) {
-        setErro(e instanceof Error ? e.message : 'Erro ao criar contato')
-      }
-    })()
-  }, [])
+  const adicionarContato = useCallback(
+    (colunaId: string, dados: NovoContatoInput) => {
+      const nome = dados.nome.trim()
+      const telefone = dados.telefone.trim()
+      if (!nome || !telefone) return
+      void (async () => {
+        try {
+          const { contato } = await crmFetch<{ contato: Contato }>('/contatos', {
+            method: 'POST',
+            body: JSON.stringify({
+              colunaId,
+              nome,
+              telefone,
+              ddi: dados.ddi ?? '+55',
+              iaAtiva: dados.iaAtiva ?? true,
+            }),
+          })
+          const normalizado = normalizarContatos([contato])[0]
+          setContatos((prev) => [...prev, normalizado])
+          setContatoAbertoId(normalizado.id)
+          setErro(null)
+        } catch (e) {
+          if (
+            e instanceof CrmApiError &&
+            e.codigo === 'telefone_duplicado' &&
+            e.contatoExistenteId
+          ) {
+            if (
+              window.confirm(
+                'Já existe um contato com este telefone. Abrir o contato existente?',
+              )
+            ) {
+              abrirContato(e.contatoExistenteId)
+            }
+            return
+          }
+          setErro(e instanceof Error ? e.message : 'Erro ao criar contato')
+        }
+      })()
+    },
+    [abrirContato],
+  )
 
   const atualizarContato = useCallback(
     (id: string, patch: Partial<Contato>) => {
@@ -296,7 +347,6 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     })()
   }, [])
 
-  const abrirContato = useCallback((id: string) => setContatoAbertoId(id), [])
   const fecharContato = useCallback(() => setContatoAbertoId(null), [])
 
   const removerContato = useCallback((id: string) => {
@@ -408,19 +458,23 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     })()
   }, [])
 
-  const removerColuna = useCallback((id: string) => {
-    setColunas((prev) =>
-      prev.filter((c) => c.id !== id).map((c, i) => ({ ...c, ordem: i })),
-    )
-    setContatos((prev) => prev.filter((c) => c.colunaId !== id))
-    void (async () => {
-      try {
-        await crmFetch(`/colunas/${id}`, { method: 'DELETE' })
-      } catch (e) {
-        setErro(e instanceof Error ? e.message : 'Erro ao excluir coluna')
-      }
-    })()
-  }, [])
+  const removerColuna = useCallback(
+    (id: string, opts?: { moverParaId?: string }) => {
+      void (async () => {
+        try {
+          const body = opts?.moverParaId
+            ? JSON.stringify({ moverParaId: opts.moverParaId })
+            : JSON.stringify({})
+          await crmFetch(`/colunas/${id}`, { method: 'DELETE', body })
+          await recarregarBoard()
+          setErro(null)
+        } catch (e) {
+          setErro(e instanceof Error ? e.message : 'Erro ao excluir coluna')
+        }
+      })()
+    },
+    [recarregarBoard],
+  )
 
   const value: CrmContextValue = {
     colunas,

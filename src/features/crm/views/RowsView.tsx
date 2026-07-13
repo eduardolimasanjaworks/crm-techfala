@@ -5,6 +5,8 @@
 import { useMemo, useState } from 'react'
 import type { Coluna, Contato } from '@/shared/types/crm'
 import { ContactCard } from '../components/ContactCard'
+import { promptNovoContato } from '../components/promptNovoContato'
+import { useDropContato } from '../hooks/useDropContato'
 import { useCrm } from '../store/crmStore'
 import { StageSectionHeader } from './StageSectionHeader'
 import { PAGE_SIZE, somaValores } from './viewUtils'
@@ -18,6 +20,7 @@ function RowSection({
 }) {
   const { adicionarContato } = useCrm()
   const [visiveis, setVisiveis] = useState(PAGE_SIZE)
+  const drop = useDropContato(coluna.id)
   const slice = contatos.slice(0, visiveis)
   const resto = contatos.length - slice.length
   const totalValor = somaValores(contatos)
@@ -30,12 +33,14 @@ function RowSection({
         cor={coluna.cor}
         count={contatos.length}
         valorTotal={totalValor}
-        onAdd={() => {
-          const nome = window.prompt('Nome do contato')
-          if (nome?.trim()) adicionarContato(coluna.id, nome.trim())
-        }}
+        onAdd={() => promptNovoContato(coluna.id, adicionarContato)}
       />
-      <div className="rows-track">
+      <div
+        className={`rows-track${drop.over ? ' is-over' : ''}`}
+        onDragOver={drop.onDragOver}
+        onDragLeave={drop.onDragLeave}
+        onDrop={drop.onDrop}
+      >
         {slice.map((c) => (
           <div key={c.id} className="rows-card-wrap">
             <ContactCard contato={c} />

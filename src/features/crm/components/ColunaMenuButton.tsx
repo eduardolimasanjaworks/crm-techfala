@@ -1,5 +1,6 @@
 /**
  * Menu ⋯ da coluna/etapa: renomear, cor e remover.
+ * Ao remover com contatos, oferece mover para outra etapa ou excluir tudo.
  */
 import { useEffect, useRef, useState } from 'react'
 import { IconEllipsis } from '@/shared/icons'
@@ -20,11 +21,19 @@ type Props = {
   colunaId: string
   titulo: string
   cor?: string
+  contatosCount?: number
   className?: string
 }
 
-export function ColunaMenuButton({ colunaId, titulo, cor, className }: Props) {
-  const { renomearColuna, alterarCorColuna, removerColuna } = useCrm()
+export function ColunaMenuButton({
+  colunaId,
+  titulo,
+  cor,
+  contatosCount = 0,
+  className,
+}: Props) {
+  const { colunasOrdenadas, renomearColuna, alterarCorColuna, removerColuna } =
+    useCrm()
   const [open, setOpen] = useState(false)
   const root = useRef<HTMLDivElement>(null)
 
@@ -36,6 +45,42 @@ export function ColunaMenuButton({ colunaId, titulo, cor, className }: Props) {
     document.addEventListener('mousedown', onDoc)
     return () => document.removeEventListener('mousedown', onDoc)
   }, [open])
+
+  function confirmarRemover() {
+    if (contatosCount <= 0) {
+      if (window.confirm(`Excluir a etapa "${titulo}"?`)) {
+        removerColuna(colunaId)
+      }
+      return
+    }
+
+    const outras = colunasOrdenadas.filter((c) => c.id !== colunaId)
+    const lista = outras
+      .map((c, i) => `${i + 1}. ${c.titulo}`)
+      .join('\n')
+    const escolha = window.prompt(
+      `Esta etapa tem ${contatosCount} contato(s).\n\nDigite o número da etapa para mover os contatos:\n\n${lista}\n\n(Cancelar para excluir todos os contatos)`,
+    )
+
+    if (escolha === null) {
+      if (
+        window.confirm(
+          `Excluir a etapa "${titulo}" e todos os ${contatosCount} contatos nela?`,
+        )
+      ) {
+        removerColuna(colunaId)
+      }
+      return
+    }
+
+    const idx = Number.parseInt(escolha.trim(), 10) - 1
+    const destino = outras[idx]
+    if (!destino) {
+      window.alert('Etapa inválida.')
+      return
+    }
+    removerColuna(colunaId, { moverParaId: destino.id })
+  }
 
   return (
     <div className={`col-menu${className ? ` ${className}` : ''}`} ref={root}>
@@ -83,13 +128,7 @@ export function ColunaMenuButton({ colunaId, titulo, cor, className }: Props) {
             type="button"
             className="danger"
             onClick={() => {
-              if (
-                window.confirm(
-                  `Excluir a etapa "${titulo}" e os contatos nela?`,
-                )
-              ) {
-                removerColuna(colunaId)
-              }
+              confirmarRemover()
               setOpen(false)
             }}
           >

@@ -1,69 +1,8 @@
 /**
- * Editor de responsáveis e autor das notas.
+ * Editor do autor das notas (responsáveis vêm dos usuários do sistema).
  */
 import { useEffect, useState } from 'react'
 import { useCadastros } from './cadastrosStore'
-
-function ListaEditavel({
-  label,
-  itens,
-  onChange,
-}: {
-  label: string
-  itens: string[]
-  onChange: (next: string[]) => void
-}) {
-  const [novo, setNovo] = useState('')
-
-  return (
-    <div className="field">
-      <span>{label}</span>
-      <ul className="kv-list">
-        {itens.map((item, i) => (
-          <li key={`${item}-${i}`}>
-            <strong>{item}</strong>
-            <button
-              type="button"
-              className="btn btn-ghost btn-icon sm danger-text"
-              aria-label={`Remover ${item}`}
-              onClick={() => onChange(itens.filter((_, j) => j !== i))}
-            >
-              ×
-            </button>
-          </li>
-        ))}
-      </ul>
-      <div className="inline-add">
-        <input
-          className="input"
-          placeholder="Novo item"
-          value={novo}
-          onChange={(e) => setNovo(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key !== 'Enter') return
-            e.preventDefault()
-            const t = novo.trim()
-            if (!t || itens.includes(t)) return
-            onChange([...itens, t])
-            setNovo('')
-          }}
-        />
-        <button
-          type="button"
-          className="btn btn-outline"
-          onClick={() => {
-            const t = novo.trim()
-            if (!t || itens.includes(t)) return
-            onChange([...itens, t])
-            setNovo('')
-          }}
-        >
-          Adicionar
-        </button>
-      </div>
-    </div>
-  )
-}
 
 export function CadastrosEditor() {
   const { cadastros, salvar, carregando } = useCadastros()
@@ -93,12 +32,6 @@ export function CadastrosEditor() {
   return (
     <div className="aba-form cadastros-editor">
       {carregando ? <p className="empty-hint">Carregando…</p> : null}
-
-      <ListaEditavel
-        label="Responsáveis"
-        itens={cadastros.responsaveis}
-        onChange={(responsaveis) => void persistir({ responsaveis })}
-      />
 
       <label className="field">
         <span>Autor das notas (nome)</span>

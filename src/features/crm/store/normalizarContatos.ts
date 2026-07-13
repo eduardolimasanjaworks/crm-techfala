@@ -54,6 +54,10 @@ export function normalizarContatos(lista: unknown): Contato[] {
       ...c,
       id: base.id,
       nome: c.nome ?? base.nome,
+      automacaoAtiva:
+        (c as { iaAtiva?: boolean }).iaAtiva ??
+        c.automacaoAtiva ??
+        base.automacaoAtiva,
       notas,
       eventos,
       interacoes,

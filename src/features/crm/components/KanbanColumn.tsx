@@ -56,7 +56,7 @@ export function KanbanColumn({ coluna, contatos }: Props) {
           <span className="badge">{contatos.length}</span>
         </div>
 
-        <ColunaMenuButton colunaId={coluna.id} titulo={coluna.titulo} cor={coluna.cor} />
+        <ColunaMenuButton colunaId={coluna.id} titulo={coluna.titulo} cor={coluna.cor} contatosCount={contatos.length} />
       </div>
 
       <div className="col-body">

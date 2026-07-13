@@ -7,7 +7,6 @@ import {
   IconExpand,
   IconLayoutGrid,
   IconList,
-  IconListChecks,
   IconPlus,
   IconRefresh,
   IconRows,
@@ -23,7 +22,7 @@ import { FiltroPanel } from './FiltroPanel'
 type Props = {
   viewMode: ViewMode
   onViewModeChange: (mode: ViewMode) => void
-  onAbrirTarefas: () => void
+  onAbrirTags: () => void
   onAbrirCampos: () => void
 }
 
@@ -38,7 +37,7 @@ const VIEW_BTNS: { id: ViewMode; label: string; Icon: typeof IconLayoutGrid }[] 
 export function CrmToolbar({
   viewMode,
   onViewModeChange,
-  onAbrirTarefas,
+  onAbrirTags,
   onAbrirCampos,
 }: Props) {
   const {
@@ -161,11 +160,10 @@ export function CrmToolbar({
         <button
           type="button"
           className="btn btn-outline"
-          title="Tarefas"
-          onClick={onAbrirTarefas}
+          title="Tags"
+          onClick={onAbrirTags}
         >
-          <IconListChecks />
-          <span className="btn-label">Tarefas</span>
+          <span className="btn-label">Tags</span>
         </button>
 
         <button

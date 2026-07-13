@@ -5,9 +5,17 @@
 
 export class CrmApiError extends Error {
   status: number
-  constructor(status: number, message: string) {
+  codigo?: string
+  contatoExistenteId?: string
+  constructor(
+    status: number,
+    message: string,
+    extra?: { codigo?: string; contatoExistenteId?: string },
+  ) {
     super(message)
     this.status = status
+    this.codigo = extra?.codigo
+    this.contatoExistenteId = extra?.contatoExistenteId
   }
 }
 
@@ -37,9 +45,14 @@ export async function crmFetch<T>(
   const data = (await res.json().catch(() => ({}))) as {
     ok?: boolean
     erro?: string
+    codigo?: string
+    contatoExistenteId?: string
   } & T
   if (!res.ok || data.ok === false) {
-    throw new CrmApiError(res.status, data.erro || `HTTP ${res.status}`)
+    throw new CrmApiError(res.status, data.erro || `HTTP ${res.status}`, {
+      codigo: data.codigo,
+      contatoExistenteId: data.contatoExistenteId,
+    })
   }
   return data
 }

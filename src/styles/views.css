@@ -21,6 +21,14 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
+.rows-track.is-over,
+.list-grid-wrap.is-over,
+.funnel-panel-grid.is-over {
+  outline: 2px dashed rgb(59, 130, 246);
+  outline-offset: -2px;
+  background: rgba(59, 130, 246, 0.06);
+}
+
 .stage-section-header {
   display: flex;
   align-items: center;

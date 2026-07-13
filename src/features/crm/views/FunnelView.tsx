@@ -11,6 +11,8 @@ import {
 import type { Contato } from '@/shared/types/crm'
 import { ColunaMenuButton } from '../components/ColunaMenuButton'
 import { ContactCard } from '../components/ContactCard'
+import { promptNovoContato } from '../components/promptNovoContato'
+import { useDropContato } from '../hooks/useDropContato'
 import { useCrm } from '../store/crmStore'
 import { buildFunnelSlices, slicePath } from './funnelGeometry'
 import {
@@ -52,6 +54,7 @@ export function FunnelView() {
   )
 
   const ativo = stats.find((s) => s.col.id === selId) ?? stats[0]
+  const drop = useDropContato(ativo?.col.id ?? '')
   if (!ativo) return null
 
   const sliceCards = ativo.list.slice(0, visiveis)
@@ -153,11 +156,7 @@ export function FunnelView() {
               <button
                 type="button"
                 className="btn btn-ghost"
-                onClick={() => {
-                  const nome = window.prompt('Nome do contato')
-                  if (nome?.trim())
-                    adicionarContato(ativo.col.id, nome.trim())
-                }}
+                onClick={() => promptNovoContato(ativo.col.id, adicionarContato)}
               >
                 <IconPlus /> Adicionar
               </button>
@@ -165,11 +164,17 @@ export function FunnelView() {
                 colunaId={ativo.col.id}
                 titulo={ativo.col.titulo}
                 cor={ativo.col.cor}
+                contatosCount={ativo.count}
               />
             </div>
           </header>
 
-          <div className="funnel-panel-grid">
+          <div
+            className={`funnel-panel-grid${drop.over ? ' is-over' : ''}`}
+            onDragOver={drop.onDragOver}
+            onDragLeave={drop.onDragLeave}
+            onDrop={drop.onDrop}
+          >
             {sliceCards.map((c: Contato) => (
               <ContactCard key={c.id} contato={c} />
             ))}

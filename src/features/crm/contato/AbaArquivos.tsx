@@ -23,6 +23,10 @@ export function AbaArquivos({ contato }: Props) {
     setEnviando(true)
     try {
       for (const f of Array.from(files)) {
+        if (f.size > 20 * 1024 * 1024) {
+          window.alert('O arquivo excede o limite de 20 MB.')
+          continue
+        }
         uploadArquivo(contato.id, f)
       }
     } finally {
