@@ -1,5 +1,5 @@
 /**
- * Editor de responsáveis, calendários e autor das notas.
+ * Editor de responsáveis e autor das notas.
  */
 import { useEffect, useState } from 'react'
 import { useCadastros } from './cadastrosStore'
@@ -98,12 +98,6 @@ export function CadastrosEditor() {
         label="Responsáveis"
         itens={cadastros.responsaveis}
         onChange={(responsaveis) => void persistir({ responsaveis })}
-      />
-
-      <ListaEditavel
-        label="Calendários"
-        itens={cadastros.calendarios}
-        onChange={(calendarios) => void persistir({ calendarios })}
       />
 
       <label className="field">

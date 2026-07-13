@@ -171,6 +171,28 @@
   min-width: 0;
 }
 
+.campo-card-hit {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+.campo-card-hit:hover .campo-card-nome {
+  text-decoration: underline;
+}
+
+.campo-card-acoes {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
 .campo-card-top {
   display: flex;
   align-items: center;

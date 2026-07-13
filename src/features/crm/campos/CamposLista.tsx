@@ -6,8 +6,13 @@ import { useMemo, useState } from 'react'
 import { IconSearch } from '@/shared/icons'
 import { CampoCard } from './CampoCard'
 import { useCampos } from './camposStore'
+import type { CampoPersonalizado } from './types'
 
-export function CamposLista() {
+type Props = {
+  onEditar: (campo: CampoPersonalizado) => void
+}
+
+export function CamposLista({ onEditar }: Props) {
   const { campos, remover } = useCampos()
   const [busca, setBusca] = useState('')
 
@@ -60,7 +65,12 @@ export function CamposLista() {
           </div>
         ) : (
           filtrados.map((c) => (
-            <CampoCard key={c.id} campo={c} onRemover={remover} />
+            <CampoCard
+              key={c.id}
+              campo={c}
+              onEditar={onEditar}
+              onRemover={remover}
+            />
           ))
         )}
       </div>

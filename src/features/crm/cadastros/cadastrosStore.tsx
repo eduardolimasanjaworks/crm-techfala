@@ -1,5 +1,5 @@
 /**
- * Cadastros editáveis: responsáveis, calendários e autor das notas.
+ * Cadastros editáveis: responsáveis e autor das notas.
  * Persistidos em `/api/crm/cadastros`.
  */
 import {

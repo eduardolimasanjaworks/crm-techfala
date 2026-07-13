@@ -1,5 +1,5 @@
 /**
- * Sheet direito de Tarefas: overlay + lista | form | calendário.
+ * Sheet direito de Tarefas: overlay + lista | form | agenda mensal.
  * Redimensionável no desktop; full-bleed no mobile.
  */
 import { useState } from 'react'
@@ -66,7 +66,7 @@ export function TarefasPanel({ onClose }: Props) {
                 <button
                   type="button"
                   className="btn btn-outline"
-                  title="Ver calendário"
+                  title="Ver agenda"
                   onClick={() => setView('calendario')}
                 >
                   <IconCalendarDays />

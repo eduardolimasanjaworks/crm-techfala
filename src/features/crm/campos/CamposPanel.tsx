@@ -8,23 +8,41 @@ import { useResizableWidth } from '@/shared/lib/useResizableWidth'
 import { CadastrosEditor } from '../cadastros/CadastrosEditor'
 import { CampoForm } from './CampoForm'
 import { CamposLista } from './CamposLista'
-import type { CamposView } from './types'
+import type { CampoPersonalizado, CamposView } from './types'
 
 type Props = { onClose: () => void }
 
 export function CamposPanel({ onClose }: Props) {
   const [view, setView] = useState<CamposView>('lista')
+  const [editando, setEditando] = useState<CampoPersonalizado | null>(null)
   const { cssWidth, startResize, canResize } = useResizableWidth({
     storageKey: 'techfala-campos-panel-w',
     minDesktop: 360,
     defaultRatio: 0.4,
   })
 
+  function abrirNovo() {
+    setEditando(null)
+    setView('form')
+  }
+
+  function abrirEditar(campo: CampoPersonalizado) {
+    setEditando(campo)
+    setView('form')
+  }
+
+  function voltarLista() {
+    setEditando(null)
+    setView('lista')
+  }
+
   const titulo =
     view === 'cadastros'
       ? 'Cadastros'
       : view === 'form'
-        ? 'Novo Campo'
+        ? editando
+          ? 'Editar Campo'
+          : 'Novo Campo'
         : 'Campos Personalizados'
 
   return (
@@ -72,19 +90,23 @@ export function CamposPanel({ onClose }: Props) {
                 <button
                   type="button"
                   className="btn btn-primary"
-                  onClick={() => setView('form')}
+                  onClick={abrirNovo}
                 >
                   <IconPlus />
                   Campo
                 </button>
               </div>
             </header>
-            <CamposLista />
+            <CamposLista onEditar={abrirEditar} />
           </>
         ) : null}
 
         {view === 'form' ? (
-          <CampoForm onVoltar={() => setView('lista')} />
+          <CampoForm
+            key={editando?.id ?? 'novo'}
+            campo={editando ?? undefined}
+            onVoltar={voltarLista}
+          />
         ) : null}
 
         {view === 'cadastros' ? (

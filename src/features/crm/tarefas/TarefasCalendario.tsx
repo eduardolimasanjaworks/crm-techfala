@@ -1,5 +1,5 @@
 /**
- * Vista calendário do painel — mês, semana e dia.
+ * Vista agenda do painel de tarefas — mês, semana e dia.
  */
 import { useMemo, useState } from 'react'
 import {

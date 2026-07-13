@@ -1,6 +1,6 @@
 /**
  * Card de um campo na lista do sheet.
- * Mostra nome, tipo, ativo/inativo e ação de excluir.
+ * Mostra nome, tipo, ativo/inativo e ações editar/excluir.
  */
 import { IconTrash } from '@/shared/icons'
 import { rotuloTipo } from './rotuloTipo'
@@ -8,13 +8,18 @@ import type { CampoPersonalizado } from './types'
 
 type Props = {
   campo: CampoPersonalizado
+  onEditar: (campo: CampoPersonalizado) => void
   onRemover: (id: string) => void
 }
 
-export function CampoCard({ campo, onRemover }: Props) {
+export function CampoCard({ campo, onEditar, onRemover }: Props) {
   return (
     <div className="campo-card">
-      <div className="campo-card-body">
+      <button
+        type="button"
+        className="campo-card-body campo-card-hit"
+        onClick={() => onEditar(campo)}
+      >
         <div className="campo-card-top">
           <span className="campo-card-nome">{campo.nome}</span>
           <span className={`campo-badge${campo.ativo ? ' is-ativo' : ''}`}>
@@ -30,15 +35,27 @@ export function CampoCard({ campo, onRemover }: Props) {
             ? ` · ${campo.opcoes.length} opções`
             : ''}
         </p>
-      </div>
-      <button
-        type="button"
-        className="tarefa-acao is-danger"
-        title="Excluir"
-        onClick={() => onRemover(campo.id)}
-      >
-        <IconTrash />
       </button>
+      <div className="campo-card-acoes">
+        <button
+          type="button"
+          className="tarefa-acao"
+          title="Editar"
+          aria-label="Editar"
+          onClick={() => onEditar(campo)}
+        >
+          ✎
+        </button>
+        <button
+          type="button"
+          className="tarefa-acao is-danger"
+          title="Excluir"
+          aria-label="Excluir"
+          onClick={() => onRemover(campo.id)}
+        >
+          <IconTrash />
+        </button>
+      </div>
     </div>
   )
 }

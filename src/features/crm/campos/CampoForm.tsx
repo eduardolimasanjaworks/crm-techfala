@@ -1,23 +1,28 @@
 /**
- * Formulário “Novo Campo” dentro do sheet.
- * Exige nome; switch Ativo e tipo Texto por padrão.
+ * Formulário criar/editar campo do catálogo.
  * Tipo lista exige opções (uma por linha).
  */
 import { useState } from 'react'
 import { IconArrowLeft } from '@/shared/icons'
 import { useCampos } from './camposStore'
 import { TIPO_OPCOES } from './rotuloTipo'
-import type { CampoTipo } from './types'
+import type { CampoPersonalizado, CampoTipo } from './types'
 
-type Props = { onVoltar: () => void }
+type Props = {
+  onVoltar: () => void
+  campo?: CampoPersonalizado
+}
 
-export function CampoForm({ onVoltar }: Props) {
-  const { criar } = useCampos()
-  const [nome, setNome] = useState('')
-  const [descricao, setDescricao] = useState('')
-  const [ativo, setAtivo] = useState(true)
-  const [tipo, setTipo] = useState<CampoTipo>('texto')
-  const [opcoesTexto, setOpcoesTexto] = useState('')
+export function CampoForm({ onVoltar, campo }: Props) {
+  const { criar, atualizar } = useCampos()
+  const editando = Boolean(campo)
+  const [nome, setNome] = useState(campo?.nome ?? '')
+  const [descricao, setDescricao] = useState(campo?.descricao ?? '')
+  const [ativo, setAtivo] = useState(campo?.ativo ?? true)
+  const [tipo, setTipo] = useState<CampoTipo>(campo?.tipo ?? 'texto')
+  const [opcoesTexto, setOpcoesTexto] = useState(
+    (campo?.opcoes ?? []).join('\n'),
+  )
 
   const opcoes =
     tipo === 'lista'
@@ -32,13 +37,18 @@ export function CampoForm({ onVoltar }: Props) {
 
   function salvar() {
     if (!valido) return
-    criar({
+    const dados = {
       nome: nome.trim(),
       descricao: descricao.trim(),
       ativo,
       tipo,
       opcoes,
-    })
+    }
+    if (campo) {
+      atualizar(campo.id, dados)
+    } else {
+      criar(dados)
+    }
     onVoltar()
   }
 
@@ -49,7 +59,9 @@ export function CampoForm({ onVoltar }: Props) {
           <IconArrowLeft />
           Voltar
         </button>
-        <span className="campo-form-titulo">Novo Campo</span>
+        <span className="campo-form-titulo">
+          {editando ? 'Editar Campo' : 'Novo Campo'}
+        </span>
       </div>
 
       <div className="campo-form-body">
@@ -129,7 +141,7 @@ export function CampoForm({ onVoltar }: Props) {
           disabled={!valido}
           onClick={salvar}
         >
-          Criar
+          {editando ? 'Salvar' : 'Criar'}
         </button>
       </div>
     </div>

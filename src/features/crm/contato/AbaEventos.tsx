@@ -1,9 +1,9 @@
 /**
- * Aba Eventos — CRUD completo (criar/editar/excluir).
+ * Aba Eventos — CRUD (criar/editar/excluir).
+ * Data/hora e URL locais; sem calendário externo nem notificação.
  */
 import { useState } from 'react'
 import type { Contato, ContatoEvento } from '@/shared/types/crm'
-import { useCadastros } from '../cadastros/cadastrosStore'
 import { useCrm } from '../store/crmStore'
 import { AbaCabecalho } from './AbaCabecalho'
 
@@ -17,13 +17,10 @@ const vazio = {
   inicioHora: '',
   fimData: '',
   fimHora: '',
-  calendario: '',
-  notificacao: false,
 }
 
 export function AbaEventos({ contato }: Props) {
   const { atualizarContato } = useCrm()
-  const { cadastros } = useCadastros()
   const [aberto, setAberto] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
   const [form, setForm] = useState(vazio)
@@ -46,15 +43,18 @@ export function AbaEventos({ contato }: Props) {
       inicioHora: e.inicioHora,
       fimData: e.fimData,
       fimHora: e.fimHora,
-      calendario: e.calendario,
-      notificacao: e.notificacao,
     })
     setAberto(true)
   }
 
   function salvar() {
     if (!valido) return
-    const dados = { ...form, titulo: form.titulo.trim() }
+    const dados = {
+      ...form,
+      titulo: form.titulo.trim(),
+      calendario: '',
+      notificacao: false,
+    }
     if (editId) {
       atualizarContato(contato.id, {
         eventos: contato.eventos.map((e) =>
@@ -167,35 +167,6 @@ export function AbaEventos({ contato }: Props) {
                 onChange={(e) => setForm({ ...form, url: e.target.value })}
               />
             </label>
-            <div className="cal-notif-row">
-              <label className="field-xs flex-1">
-                <span>Calendário</span>
-                <select
-                  className="input h-9"
-                  value={form.calendario}
-                  onChange={(e) => setForm({ ...form, calendario: e.target.value })}
-                >
-                  <option value="">Selecione</option>
-                  {cadastros.calendarios.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="switch-label">
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={form.notificacao}
-                  className={`switch${form.notificacao ? ' is-on' : ''}`}
-                  onClick={() => setForm({ ...form, notificacao: !form.notificacao })}
-                >
-                  <span className="switch-knob" />
-                </button>
-                Notificação
-              </label>
-            </div>
             <div className="form-actions">
               <button
                 type="button"
@@ -226,7 +197,6 @@ export function AbaEventos({ contato }: Props) {
               <p>
                 {e.inicioData} {e.inicioHora}
                 {e.fimData ? ` → ${e.fimData} ${e.fimHora}` : ''}
-                {e.calendario ? ` · ${e.calendario}` : ''}
               </p>
               {e.url ? <p className="meta-link">{e.url}</p> : null}
             </div>
