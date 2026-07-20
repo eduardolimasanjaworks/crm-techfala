@@ -68,6 +68,7 @@ type CrmContextValue = CrmState & {
   removerColuna: (id: string, opts?: { moverParaId?: string }) => void
   sincronizarAtendimento: () => Promise<void>
   syncAtendimentoEmAndamento: boolean
+  recarregarBoard: () => Promise<void>
 }
 
 const CrmContext = createContext<CrmContextValue | null>(null)
@@ -546,6 +547,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     removerColuna,
     sincronizarAtendimento,
     syncAtendimentoEmAndamento,
+    recarregarBoard,
   }
 
   return <CrmContext.Provider value={value}>{children}</CrmContext.Provider>

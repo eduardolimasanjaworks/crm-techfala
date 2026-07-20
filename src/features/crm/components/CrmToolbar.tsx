@@ -4,6 +4,7 @@
 import { useEffect, useState } from 'react'
 import {
   IconArrowUpDown,
+  IconDownload,
   IconExpand,
   IconLayoutGrid,
   IconList,
@@ -12,12 +13,17 @@ import {
   IconRows,
   IconSearch,
   IconSliders,
+  IconUpload,
   IconZoomIn,
   IconZoomOut,
 } from '@/shared/icons'
 import type { ViewMode } from '@/shared/types/views'
 import { useCrm } from '../store/crmStore'
 import { FiltroPanel } from './FiltroPanel'
+import {
+  ImportCsvModal,
+  useExportarContatosCsv,
+} from './ImportExportContatos'
 
 type Props = {
   viewMode: ViewMode
@@ -50,6 +56,8 @@ export function CrmToolbar({
     syncAtendimentoEmAndamento,
   } = useCrm()
   const [filtroAberto, setFiltroAberto] = useState(false)
+  const [importAberto, setImportAberto] = useState(false)
+  const exportarCsv = useExportarContatosCsv()
 
   useEffect(() => {
     if (!filtroAberto) return
@@ -147,6 +155,26 @@ export function CrmToolbar({
         <button
           type="button"
           className="btn btn-outline"
+          title="Importar contatos via CSV"
+          onClick={() => setImportAberto(true)}
+        >
+          <IconUpload />
+          <span className="btn-label">Importar</span>
+        </button>
+
+        <button
+          type="button"
+          className="btn btn-outline"
+          title="Exportar contatos filtrados em CSV"
+          onClick={exportarCsv}
+        >
+          <IconDownload />
+          <span className="btn-label">Exportar</span>
+        </button>
+
+        <button
+          type="button"
+          className="btn btn-outline"
           disabled={syncAtendimentoEmAndamento}
           title="Sincronizar contatos do Atendimento"
           onClick={() => void sincronizarAtendimento()}
@@ -176,6 +204,11 @@ export function CrmToolbar({
           <span className="btn-label">Campos</span>
         </button>
       </div>
+
+      <ImportCsvModal
+        aberto={importAberto}
+        onClose={() => setImportAberto(false)}
+      />
     </div>
   )
 }
